@@ -6,6 +6,7 @@ import {
   Actor,
   Vector,
   vec,
+  Keys,
   type ExcaliburGraphicsContext,
 } from "excalibur";
 
@@ -14,15 +15,29 @@ class LineActor extends Actor {
   headPos: Vector = vec(0, 300);
   velocity: Vector = vec(150, 0);
 
+  gravity: number = 800;
+  lift: number = -300;
+
   onInitialize() {
     this.points.push(this.headPos.clone());
   }
 
-  onPreUpdate(_engine: Engine, delta: number) {
+  onPreUpdate(engine: Engine, delta: number) {
     const dt = delta / 1000;
 
+    // Use Pointer ID 0 for primary touch/mouse, or Spacebar
+    if (engine.input.pointers.isDown(0) || engine.input.keyboard.isHeld(Keys.Space)) {
+      this.velocity.y = this.lift;
+    } else {
+      this.velocity.y += this.gravity * dt;
+    }
+
     this.headPos.x += this.velocity.x * dt;
+    this.headPos.y += this.velocity.y * dt;
     this.points.push(this.headPos.clone());
+
+    // Camera follow
+    engine.currentScene.camera.pos = vec(this.headPos.x + 200, 300);
   }
 
   onPostDraw(ctx: ExcaliburGraphicsContext) {
