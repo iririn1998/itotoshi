@@ -7,6 +7,10 @@ settings:
 importers:
 
   .:
+    dependencies:
+      excalibur:
+        specifier: ^0.32.0
+        version: 0.32.0
     devDependencies:
       lefthook:
         specifier: ^2.1.4
@@ -367,6 +371,9 @@ packages:
   detect-libc@2.1.2:
     resolution: {integrity: sha512-Btj2BOOO83o3WyH59e8MgXsxEQVcarkUOpEYrubB0urwnN10yQ364rsiByU11nZlqWYZm05i/of7io4mzihBtQ==}
     engines: {node: '>=8'}
+
+  excalibur@0.32.0:
+    resolution: {integrity: sha512-anCvsZK2Dh3BTlw/ERHr3fvfqF2vdJHw88soCs3r6EIwxbhibNRILMZw3Ae6GMTY8FkzRfkGLyk7DlEZVesUaw==}
 
   fdir@6.5.0:
     resolution: {integrity: sha512-tIbYtZbucOs0BRGqPJkshJUYdL+SDH7dVM8gjy+ERp3WAUjLEFJE+02kanyHtwjWOnwrKYBiwAmM0p4kLJAnXg==}
@@ -801,6 +808,8 @@ snapshots:
     optional: true
 
   detect-libc@2.1.2: {}
+
+  excalibur@0.32.0: {}
 
   fdir@6.5.0(picomatch@4.0.3):
     optionalDependencies:
