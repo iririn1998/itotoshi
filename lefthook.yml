@@ -10,4 +10,4 @@ pre-commit:
 
     - name: oxfmt
       glob: "*.{js,ts,jsx,tsx,json,jsonc,css,html}"
-      run: pnpm oxfmt --write {staged_files} && git add {staged_files}
+      run: pnpm oxfmt --check {staged_files}
