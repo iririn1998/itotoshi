@@ -6,10 +6,10 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build",
+    "preview": "vite preview",
     "lint": "oxlint",
     "format": "oxfmt --write .",
-    "format:check": "oxfmt --check",
-    "preview": "vite preview"
+    "format:check": "oxfmt --check"
   },
   "devDependencies": {
     "lefthook": "^2.1.4",
