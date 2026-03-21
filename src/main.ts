@@ -36,6 +36,9 @@ class LineActor extends Actor {
     this.headPos.y += this.velocity.y * dt;
     this.points.push(this.headPos.clone());
 
+    // Update the actor's position so it doesn't get culled by the camera
+    this.pos = this.headPos.clone();
+
     // Camera follow
     engine.currentScene.camera.pos = vec(this.headPos.x + 200, 300);
   }
@@ -43,7 +46,8 @@ class LineActor extends Actor {
   onPostDraw(ctx: ExcaliburGraphicsContext) {
     if (this.points.length < 2) return;
     for (let i = 0; i < this.points.length - 1; i++) {
-      ctx.drawLine(this.points[i], this.points[i + 1], Color.White, 3);
+      // Points are in global space, but ctx is in local space (relative to this.pos)
+      ctx.drawLine(this.points[i].sub(this.pos), this.points[i + 1].sub(this.pos), Color.White, 3);
     }
   }
 }
