@@ -7,9 +7,11 @@
     "dev": "vite",
     "build": "tsc && vite build",
     "lint": "oxlint",
+    "format": "oxfmt --write .",
     "preview": "vite preview"
   },
   "devDependencies": {
+    "oxfmt": "^0.41.0",
     "oxlint": "^1.56.0",
     "typescript": "~5.9.3",
     "vite": "^8.0.1"
