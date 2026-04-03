@@ -8,7 +8,7 @@ import {
   vec,
   type Engine,
 } from "excalibur";
-import { isAnyPointerDown } from "../input/pointers.ts";
+import { isAnyPointerDown } from "../input/pointers";
 
 export class LineActor extends Actor {
   private static readonly _scratchHeadLocalBox = new BoundingBox(0, 0, 0, 0);
