@@ -8,34 +8,40 @@ import {
   vec,
   type Engine,
 } from "excalibur";
+import { tuning } from "../game/tuning";
 import { isAnyPointerDown } from "../input/pointers";
+
+const lineTuning = tuning.lineActor;
 
 export class LineActor extends Actor {
   private static readonly _scratchHeadLocalBox = new BoundingBox(0, 0, 0, 0);
 
-  points: Vector[] = [];
-  headPos: Vector = vec(0, 300);
-  velocity: Vector = vec(150, 0);
+  /** 線分として描画・トリムするために必要な軌跡点の最小個数 */
+  private static readonly MIN_TRAIL_POINTS = 2;
 
-  gravity: number = 800;
+  points: Vector[] = [];
+  headPos: Vector = vec(lineTuning.initialHeadX, lineTuning.baselineWorldY);
+  velocity: Vector = vec(lineTuning.initialVelocityX, lineTuning.initialVelocityY);
+
+  gravity: number = lineTuning.gravity;
   /** クリック／スペース中の上向き加速度（px/s²）。重力を打ち消して vy を負側へ滑らかに寄せる */
-  liftAcceleration: number = 2600;
+  liftAcceleration: number = lineTuning.liftAcceleration;
   /** 上方向への最大速度（px/s）。y 正は下なので、これ以上は上に速くならない */
-  maxAscendVy: number = -480;
+  maxAscendVy: number = lineTuning.maxAscendVy;
 
   /** 軌跡線の太さ（px） */
-  lineWidth: number = 1;
+  lineWidth: number = lineTuning.lineWidth;
 
   /**
    * 保持する軌跡点の上限。長時間プレイでもメモリと onPostDraw のループが線形に伸びないようにする。
    * 先頭から削除するため、古い点が切れる（画面左外に出た分は {@link trailViewportMargin} 側で主に落ちる）。
    */
-  maxTrailPoints: number = 6000;
+  maxTrailPoints: number = lineTuning.maxTrailPoints;
 
   /**
    * ビューポート境界に足す余白（px）。カメラの viewport より外側に完全に出たセグメントだけ先頭から捨てる。
    */
-  trailViewportMargin: number = 64;
+  trailViewportMargin: number = lineTuning.trailViewportMargin;
 
   /**
    * 軌跡のローカル AABB（{@link pos}＝先端と同一）。トリム無しフレームは平行移動＋先端 combine で O(1) 更新する。
@@ -50,7 +56,10 @@ export class LineActor extends Actor {
 
     let trimmed = false;
     let drop = 0;
-    while (drop + 2 < this.points.length && this.points[drop + 1].x < left) {
+    while (
+      drop + LineActor.MIN_TRAIL_POINTS < this.points.length &&
+      this.points[drop + 1].x < left
+    ) {
       drop++;
     }
     if (drop > 0) {
@@ -59,8 +68,8 @@ export class LineActor extends Actor {
     }
 
     const over = this.points.length - this.maxTrailPoints;
-    if (over > 0 && this.points.length > 2) {
-      const toRemove = Math.min(over, this.points.length - 2);
+    if (over > 0 && this.points.length > LineActor.MIN_TRAIL_POINTS) {
+      const toRemove = Math.min(over, this.points.length - LineActor.MIN_TRAIL_POINTS);
       if (toRemove > 0) {
         this.points.splice(0, toRemove);
         trimmed = true;
@@ -92,7 +101,7 @@ export class LineActor extends Actor {
   onInitialize = () => {
     this.points.push(this.headPos.clone());
     this.graphics.onPostDraw = (ctx) => {
-      if (this.points.length < 2) return;
+      if (this.points.length < LineActor.MIN_TRAIL_POINTS) return;
       const origin = this.pos;
       if (ctx instanceof ExcaliburGraphicsContext2DCanvas) {
         const c = ctx.__ctx;
@@ -124,7 +133,7 @@ export class LineActor extends Actor {
   };
 
   onPreUpdate = (engine: Engine, delta: number) => {
-    const dt = delta / 1000;
+    const dt = delta / tuning.msPerSecond;
 
     const prevHeadX = this.headPos.x;
     const prevHeadY = this.headPos.y;
@@ -172,6 +181,9 @@ export class LineActor extends Actor {
     this.graphics.localBounds = this.trailLocalBounds;
 
     // Camera follow
-    engine.currentScene.camera.pos = vec(this.headPos.x + 200, 300);
+    engine.currentScene.camera.pos = vec(
+      this.headPos.x + lineTuning.cameraLookaheadX,
+      lineTuning.baselineWorldY,
+    );
   };
 }
