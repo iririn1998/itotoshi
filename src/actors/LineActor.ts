@@ -162,7 +162,7 @@ export class LineActor extends Actor {
     this.points.push(this.headPos.clone());
     const trailTrimmed = this.trimTrail(engine);
 
-    this.pos = this.headPos.clone();
+    this.pos.setTo(this.headPos.x, this.headPos.y);
 
     // onPostDraw の線は既定の localBounds に含まれないため、先端だけが画面外だと全体がカリングされる。
     // 軌跡全体（ローカル座標）でバウンディングを更新する。先頭トリム時は外れ値が変わるため全点再計算。
