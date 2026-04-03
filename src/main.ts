@@ -1,5 +1,5 @@
 import "./style.css";
-import { Engine, DisplayMode, Color, Actor, Vector, vec, Keys } from "excalibur";
+import { Engine, DisplayMode, Color, Actor, Vector, vec, Keys, BoundingBox } from "excalibur";
 
 /** マウス／タッチのいずれかが押されているか（正規化ポインター ID を走査） */
 function isAnyPointerDown(engine: Engine): boolean {
@@ -54,8 +54,31 @@ class LineActor extends Actor {
     this.headPos.y += this.velocity.y * dt;
     this.points.push(this.headPos.clone());
 
-    // Update the actor's position so it doesn't get culled by the camera
     this.pos = this.headPos.clone();
+
+    // onPostDraw の線は既定の localBounds に含まれないため、先端だけが画面外だと全体がカリングされる。
+    // 軌跡全体（ローカル座標）でバウンディングを更新する。
+    const halfLine = 2;
+    let minX = Infinity;
+    let minY = Infinity;
+    let maxX = -Infinity;
+    let maxY = -Infinity;
+    const px = this.pos.x;
+    const py = this.pos.y;
+    for (let i = 0; i < this.points.length; i++) {
+      const lx = this.points[i].x - px;
+      const ly = this.points[i].y - py;
+      if (lx < minX) minX = lx;
+      if (lx > maxX) maxX = lx;
+      if (ly < minY) minY = ly;
+      if (ly > maxY) maxY = ly;
+    }
+    this.graphics.localBounds = new BoundingBox(
+      minX - halfLine,
+      minY - halfLine,
+      maxX + halfLine,
+      maxY + halfLine,
+    );
 
     // Camera follow
     engine.currentScene.camera.pos = vec(this.headPos.x + 200, 300);
