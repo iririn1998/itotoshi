@@ -11,6 +11,8 @@ import {
 import { isAnyPointerDown } from "../input/pointers.ts";
 
 export class LineActor extends Actor {
+  private static readonly _scratchHeadLocalBox = new BoundingBox(0, 0, 0, 0);
+
   points: Vector[] = [];
   headPos: Vector = vec(0, 300);
   velocity: Vector = vec(150, 0);
@@ -35,18 +37,25 @@ export class LineActor extends Actor {
    */
   trailViewportMargin: number = 64;
 
-  private trimTrail(engine: Engine) {
+  /**
+   * 軌跡のローカル AABB（{@link pos}＝先端と同一）。トリム無しフレームは平行移動＋先端 combine で O(1) 更新する。
+   */
+  private trailLocalBounds: BoundingBox | null = null;
+
+  private trimTrail(engine: Engine): boolean {
     const cam = engine.currentScene.camera;
     const v = cam.viewport;
     const m = this.trailViewportMargin + Math.ceil(this.lineWidth / 2);
     const left = v.left - m;
 
+    let trimmed = false;
     let drop = 0;
     while (drop + 2 < this.points.length && this.points[drop + 1].x < left) {
       drop++;
     }
     if (drop > 0) {
       this.points.splice(0, drop);
+      trimmed = true;
     }
 
     const over = this.points.length - this.maxTrailPoints;
@@ -54,8 +63,30 @@ export class LineActor extends Actor {
       const toRemove = Math.min(over, this.points.length - 2);
       if (toRemove > 0) {
         this.points.splice(0, toRemove);
+        trimmed = true;
       }
     }
+    return trimmed;
+  }
+
+  private recomputeTrailLocalBounds(
+    originX: number,
+    originY: number,
+    halfLine: number,
+  ): BoundingBox {
+    let minX = Infinity;
+    let minY = Infinity;
+    let maxX = -Infinity;
+    let maxY = -Infinity;
+    for (let i = 0; i < this.points.length; i++) {
+      const lx = this.points[i].x - originX;
+      const ly = this.points[i].y - originY;
+      if (lx < minX) minX = lx;
+      if (lx > maxX) maxX = lx;
+      if (ly < minY) minY = ly;
+      if (ly > maxY) maxY = ly;
+    }
+    return new BoundingBox(minX - halfLine, minY - halfLine, maxX + halfLine, maxY + halfLine);
   }
 
   onInitialize = () => {
@@ -95,6 +126,9 @@ export class LineActor extends Actor {
   onPreUpdate = (engine: Engine, delta: number) => {
     const dt = delta / 1000;
 
+    const prevHeadX = this.headPos.x;
+    const prevHeadY = this.headPos.y;
+
     const ascend = isAnyPointerDown(engine) || engine.input.keyboard.isHeld(Keys.Space);
 
     let verticalAccel = this.gravity;
@@ -109,33 +143,33 @@ export class LineActor extends Actor {
     this.headPos.x += this.velocity.x * dt;
     this.headPos.y += this.velocity.y * dt;
     this.points.push(this.headPos.clone());
-    this.trimTrail(engine);
+    const trailTrimmed = this.trimTrail(engine);
 
     this.pos = this.headPos.clone();
 
     // onPostDraw の線は既定の localBounds に含まれないため、先端だけが画面外だと全体がカリングされる。
-    // 軌跡全体（ローカル座標）でバウンディングを更新する。
+    // 軌跡全体（ローカル座標）でバウンディングを更新する。先頭トリム時は外れ値が変わるため全点再計算。
     const halfLine = Math.ceil(this.lineWidth / 2);
-    let minX = Infinity;
-    let minY = Infinity;
-    let maxX = -Infinity;
-    let maxY = -Infinity;
     const px = this.pos.x;
     const py = this.pos.y;
-    for (let i = 0; i < this.points.length; i++) {
-      const lx = this.points[i].x - px;
-      const ly = this.points[i].y - py;
-      if (lx < minX) minX = lx;
-      if (lx > maxX) maxX = lx;
-      if (ly < minY) minY = ly;
-      if (ly > maxY) maxY = ly;
+    if (trailTrimmed || this.trailLocalBounds === null) {
+      this.trailLocalBounds = this.recomputeTrailLocalBounds(px, py, halfLine);
+    } else {
+      const b = this.trailLocalBounds;
+      const dx = prevHeadX - px;
+      const dy = prevHeadY - py;
+      b.left += dx;
+      b.right += dx;
+      b.top += dy;
+      b.bottom += dy;
+      const hb = LineActor._scratchHeadLocalBox;
+      hb.left = -halfLine;
+      hb.top = -halfLine;
+      hb.right = halfLine;
+      hb.bottom = halfLine;
+      b.combine(hb, b);
     }
-    this.graphics.localBounds = new BoundingBox(
-      minX - halfLine,
-      minY - halfLine,
-      maxX + halfLine,
-      maxY + halfLine,
-    );
+    this.graphics.localBounds = this.trailLocalBounds;
 
     // Camera follow
     engine.currentScene.camera.pos = vec(this.headPos.x + 200, 300);
