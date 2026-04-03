@@ -15,6 +15,8 @@ const lineTuning = tuning.lineActor;
 
 export class LineActor extends Actor {
   private static readonly _scratchHeadLocalBox = new BoundingBox(0, 0, 0, 0);
+  private static readonly _scratchA = new Vector(0, 0);
+  private static readonly _scratchB = new Vector(0, 0);
 
   /** 線分として描画・トリムするために必要な軌跡点の最小個数 */
   private static readonly MIN_TRAIL_POINTS = 2;
@@ -98,36 +100,42 @@ export class LineActor extends Actor {
     return new BoundingBox(minX - halfLine, minY - halfLine, maxX + halfLine, maxY + halfLine);
   }
 
+  /** `__ctx` へのアクセスをここに集約し、Excalibur の内部 API 依存を局所化する */
+  private drawTrail2D(c: CanvasRenderingContext2D, originX: number, originY: number): void {
+    c.save();
+    c.strokeStyle = Color.White.toString();
+    c.lineWidth = this.lineWidth;
+    c.lineCap = "round";
+    c.lineJoin = "round";
+    c.beginPath();
+    c.moveTo(this.points[0].x - originX, this.points[0].y - originY);
+    for (let i = 1; i < this.points.length; i++) {
+      const p = this.points[i];
+      c.lineTo(p.x - originX, p.y - originY);
+    }
+    c.stroke();
+    c.restore();
+  }
+
   onInitialize = () => {
     this.points.push(this.headPos.clone());
     this.graphics.onPostDraw = (ctx) => {
       if (this.points.length < LineActor.MIN_TRAIL_POINTS) return;
       const origin = this.pos;
       if (ctx instanceof ExcaliburGraphicsContext2DCanvas) {
-        const c = ctx.__ctx;
-        c.save();
-        c.strokeStyle = Color.White.toString();
-        c.lineWidth = this.lineWidth;
-        c.lineCap = "round";
-        c.lineJoin = "round";
-        c.beginPath();
-        const p0 = this.points[0].sub(origin);
-        c.moveTo(p0.x, p0.y);
-        for (let i = 1; i < this.points.length; i++) {
-          const p = this.points[i].sub(origin);
-          c.lineTo(p.x, p.y);
-        }
-        c.stroke();
-        c.restore();
+        this.drawTrail2D(ctx.__ctx, origin.x, origin.y);
         return;
       }
+      const sa = LineActor._scratchA;
+      const sb = LineActor._scratchB;
       for (let i = 0; i < this.points.length - 1; i++) {
-        ctx.drawLine(
-          this.points[i].sub(origin),
-          this.points[i + 1].sub(origin),
-          Color.White,
-          this.lineWidth,
-        );
+        const pa = this.points[i];
+        const pb = this.points[i + 1];
+        sa.x = pa.x - origin.x;
+        sa.y = pa.y - origin.y;
+        sb.x = pb.x - origin.x;
+        sb.y = pb.y - origin.y;
+        ctx.drawLine(sa, sb, Color.White, this.lineWidth);
       }
     };
   };
