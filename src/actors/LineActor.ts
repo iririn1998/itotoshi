@@ -179,11 +179,5 @@ export class LineActor extends Actor {
       b.combine(hb, b);
     }
     this.graphics.localBounds = this.trailLocalBounds;
-
-    // Camera follow
-    engine.currentScene.camera.pos = vec(
-      this.headPos.x + lineTuning.cameraLookaheadX,
-      lineTuning.baselineWorldY,
-    );
   };
 }
