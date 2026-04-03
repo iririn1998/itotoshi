@@ -67,7 +67,7 @@ const game = new Engine({
   width: 800,
   height: 600,
   displayMode: DisplayMode.FitScreen,
-  backgroundColor: Color.DarkGray,
+  backgroundColor: Color.Black,
 });
 
 const lineActor = new LineActor();
