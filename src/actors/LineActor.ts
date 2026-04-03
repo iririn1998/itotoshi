@@ -24,6 +24,40 @@ export class LineActor extends Actor {
   /** 軌跡線の太さ（px） */
   lineWidth: number = 1;
 
+  /**
+   * 保持する軌跡点の上限。長時間プレイでもメモリと onPostDraw のループが線形に伸びないようにする。
+   * 先頭から削除するため、古い点が切れる（画面左外に出た分は {@link trailViewportMargin} 側で主に落ちる）。
+   */
+  maxTrailPoints: number = 6000;
+
+  /**
+   * ビューポート境界に足す余白（px）。カメラの viewport より外側に完全に出たセグメントだけ先頭から捨てる。
+   */
+  trailViewportMargin: number = 64;
+
+  private trimTrail(engine: Engine) {
+    const cam = engine.currentScene.camera;
+    const v = cam.viewport;
+    const m = this.trailViewportMargin + Math.ceil(this.lineWidth / 2);
+    const left = v.left - m;
+
+    let drop = 0;
+    while (drop + 2 < this.points.length && this.points[drop + 1].x < left) {
+      drop++;
+    }
+    if (drop > 0) {
+      this.points.splice(0, drop);
+    }
+
+    const over = this.points.length - this.maxTrailPoints;
+    if (over > 0 && this.points.length > 2) {
+      const toRemove = Math.min(over, this.points.length - 2);
+      if (toRemove > 0) {
+        this.points.splice(0, toRemove);
+      }
+    }
+  }
+
   onInitialize = () => {
     this.points.push(this.headPos.clone());
     this.graphics.onPostDraw = (ctx) => {
@@ -75,6 +109,7 @@ export class LineActor extends Actor {
     this.headPos.x += this.velocity.x * dt;
     this.headPos.y += this.velocity.y * dt;
     this.points.push(this.headPos.clone());
+    this.trimTrail(engine);
 
     this.pos = this.headPos.clone();
 
