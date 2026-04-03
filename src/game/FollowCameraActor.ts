@@ -1,4 +1,4 @@
-import { Actor, Engine, Vector, vec } from "excalibur";
+import { Actor, Engine, Vector } from "excalibur";
 import { tuning } from "./tuning";
 
 const camTuning = tuning.camera;
@@ -21,7 +21,7 @@ export class FollowCameraActor extends Actor {
   }
 
   onPreUpdate = (engine: Engine) => {
-    engine.currentScene.camera.pos = vec(
+    engine.currentScene.camera.pos.setTo(
       this.followTarget.headPos.x + camTuning.lookaheadX,
       camTuning.fixedWorldY,
     );
