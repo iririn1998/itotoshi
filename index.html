@@ -31,7 +31,13 @@
         class="screen-overlay screen-overlay--modal is-hidden"
         aria-hidden="true"
       >
-        <div class="modal-card" role="dialog" aria-labelledby="ranking-heading">
+        <div
+          class="modal-card"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="ranking-heading"
+          tabindex="-1"
+        >
           <h2 id="ranking-heading" class="modal-title">ランキング</h2>
           <p class="modal-body">記録の表示は今後追加予定です。</p>
           <button type="button" id="btn-ranking-back" class="btn btn-secondary">戻る</button>
