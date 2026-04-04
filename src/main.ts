@@ -1,3 +1,6 @@
+/**
+ * エントリーポイント。エンジンの初期化と UI のバインドを行い、ゲームを開始します。
+ */
 import { Flags } from "excalibur";
 import { createGame } from "./game/createGame";
 import { GameScene } from "./game/sceneKeys";
