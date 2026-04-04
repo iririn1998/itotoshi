@@ -59,7 +59,7 @@ export class LineActor extends Actor {
   }
 
   /** プレイ開始／リトライ時に軌跡と物理を初期値へ戻す */
-  resetToInitialState(): void {
+  resetToInitialState = (): void => {
     this.points.length = 0;
     this.headPos.setTo(lineTuning.initialHeadX, lineTuning.baselineWorldY);
     this.velocity.setTo(lineTuning.initialVelocityX, lineTuning.initialVelocityY);
@@ -69,7 +69,7 @@ export class LineActor extends Actor {
     const halfLine = Math.ceil(this.lineWidth / 2);
     this.trailLocalBounds = this.recomputeTrailLocalBounds(this.pos.x, this.pos.y, halfLine);
     this.graphics.localBounds = this.trailLocalBounds;
-  }
+  };
 
   private trimTrail = (engine: Engine): boolean => {
     const cam = engine.currentScene.camera;
