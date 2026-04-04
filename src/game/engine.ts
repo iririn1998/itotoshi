@@ -6,7 +6,8 @@ export const createEngine = (): Engine =>
     canvasElementId: "game",
     width: tuning.gameViewport.width,
     height: tuning.gameViewport.height,
-    displayMode: DisplayMode.FitScreen,
+    /** 親 #game-frame のサイズに合わせる（FitScreen は window 基準でシェルの padding を無視する） */
+    displayMode: DisplayMode.FitContainer,
     backgroundColor: Color.Black,
     suppressPlayButton: true,
   });

@@ -13,7 +13,8 @@ export const tuning = {
   msPerSecond: 1000,
 
   /**
-   * 論理解像度（FitScreen 時の設計上の基準サイズ）。
+   * 論理解像度（エンジン内部座標系の基準サイズ）。
+   * 表示は FitContainer ＋ style.css の `--game-ar-w` / `--game-ar-h` と揃えること。
    */
   gameViewport: {
     width: 480,
