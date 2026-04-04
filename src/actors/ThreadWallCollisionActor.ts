@@ -75,7 +75,7 @@ export class ThreadWallCollisionActor extends Actor {
       const { minY, maxY } = gate.getGapYRange();
       if (yAt >= minY && yAt <= maxY) {
         gate.passScored = true;
-        this.session.addScore(1);
+        this.session.addScore(th.scorePerGapPass);
       }
     }
   };
