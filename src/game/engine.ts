@@ -8,4 +8,5 @@ export const createEngine = (): Engine =>
     height: tuning.gameViewport.height,
     displayMode: DisplayMode.FitScreen,
     backgroundColor: Color.Black,
+    suppressPlayButton: true,
   });

@@ -50,7 +50,7 @@ export class LineActor extends Actor {
    */
   private trailLocalBounds: BoundingBox | null = null;
 
-  private trimTrail(engine: Engine): boolean {
+  private trimTrail = (engine: Engine): boolean => {
     const cam = engine.currentScene.camera;
     const v = cam.viewport;
     const m = this.trailViewportMargin + Math.ceil(this.lineWidth / 2);
@@ -78,13 +78,13 @@ export class LineActor extends Actor {
       }
     }
     return trimmed;
-  }
+  };
 
-  private recomputeTrailLocalBounds(
+  private recomputeTrailLocalBounds = (
     originX: number,
     originY: number,
     halfLine: number,
-  ): BoundingBox {
+  ): BoundingBox => {
     let minX = Infinity;
     let minY = Infinity;
     let maxX = -Infinity;
@@ -98,10 +98,10 @@ export class LineActor extends Actor {
       if (ly > maxY) maxY = ly;
     }
     return new BoundingBox(minX - halfLine, minY - halfLine, maxX + halfLine, maxY + halfLine);
-  }
+  };
 
   /** `__ctx` へのアクセスをここに集約し、Excalibur の内部 API 依存を局所化する */
-  private drawTrail2D(c: CanvasRenderingContext2D, originX: number, originY: number): void {
+  private drawTrail2D = (c: CanvasRenderingContext2D, originX: number, originY: number): void => {
     c.save();
     c.strokeStyle = Color.White.toString();
     c.lineWidth = this.lineWidth;
@@ -115,7 +115,7 @@ export class LineActor extends Actor {
     }
     c.stroke();
     c.restore();
-  }
+  };
 
   onInitialize = () => {
     this.points.push(this.headPos.clone());
