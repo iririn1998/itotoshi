@@ -44,7 +44,9 @@ export class ThreadWallCollisionActor extends Actor {
     const p1 = pts[pts.length - 2]!;
     const p2 = pts[pts.length - 1]!;
 
-    for (const gate of this.spawner.getGates()) {
+    const gates = this.spawner.getGates();
+
+    for (const gate of gates) {
       for (const box of gate.getWallHitBoxes(pad)) {
         if (
           segmentIntersectsAabb(p1.x, p1.y, p2.x, p2.y, box.left, box.top, box.right, box.bottom)
@@ -56,26 +58,24 @@ export class ThreadWallCollisionActor extends Actor {
       }
     }
 
-    for (const gate of this.spawner.getGates()) {
-      if (gate.passScored) {
-        continue;
-      }
-      const x0 = p1.x;
-      const x1 = p2.x;
-      const exitX = gate.pos.x + th.wallThicknessX;
-      if (x0 >= exitX || x1 < exitX) {
-        continue;
-      }
-      const dx = x1 - x0;
-      if (dx <= 0) {
-        continue;
-      }
-      const t = (exitX - x0) / dx;
-      const yAt = p1.y + t * (p2.y - p1.y);
-      const { minY, maxY } = gate.getGapYRange();
-      if (yAt >= minY && yAt <= maxY) {
-        gate.passScored = true;
-        this.session.addScore(th.scorePerGapPass);
+    const x0 = p1.x;
+    const x1 = p2.x;
+    const dx = x1 - x0;
+    if (dx > 0) {
+      for (const gate of gates) {
+        if (gate.passScored) {
+          continue;
+        }
+        const exitX = gate.pos.x + th.wallThicknessX;
+        if (x0 < exitX && x1 >= exitX) {
+          const t = (exitX - x0) / dx;
+          const yAt = p1.y + t * (p2.y - p1.y);
+          const { minY, maxY } = gate.getGapYRange();
+          if (yAt >= minY && yAt <= maxY) {
+            gate.passScored = true;
+            this.session.addScore(th.scorePerGapPass);
+          }
+        }
       }
     }
   };
