@@ -61,4 +61,25 @@ export const tuning = {
      */
     trailViewportMargin: 64,
   },
+
+  /**
+   * 糸が通る隙間（上下の壁）を一定間隔で出現させるゲート。
+   */
+  threadHoles: {
+    /** 新しいゲートを追加する間隔（ミリ秒） */
+    spawnIntervalMs: 2200,
+    /**
+     * カメラビューポート右端（ワールド X）よりさらに右へずらす量（px）。
+     * ゲートの左端 = viewport.right + この値（正なら常に右側の画面外）。
+     */
+    spawnBeyondViewportRightPx: 48,
+    /** 壁の太さ（ワールド X 方向の幅） */
+    wallThicknessX: 14,
+    /** 上下の壁の間の隙間の高さ（ワールド Y、px） */
+    gapHeightPx: 112,
+    /** 隙間の中心 Y。通常は {@link tuning.world.baselineY} と揃えて先端の基準線付近に穴を開ける */
+    gapCenterWorldY: world.baselineY,
+    /** 画面外判定でビューポート左端からさらに左へ足す余白（px） */
+    cullMarginWorld: 64,
+  },
 } as const;

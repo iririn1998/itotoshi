@@ -1,5 +1,6 @@
 import { type Engine, Scene } from "excalibur";
 import { LineActor } from "../../actors/LineActor";
+import { ThreadHoleSpawnerActor } from "../../actors/ThreadHoleSpawnerActor";
 import { FollowCameraActor } from "../FollowCameraActor";
 
 /** ゲーム本編のメインシーン */
@@ -8,5 +9,6 @@ export class GameplayScene extends Scene {
     const lineActor = new LineActor();
     this.add(lineActor);
     this.add(new FollowCameraActor(lineActor));
+    this.add(new ThreadHoleSpawnerActor());
   };
 }
