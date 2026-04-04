@@ -9,7 +9,12 @@
   </head>
   <body>
     <div id="app-shell">
-      <canvas id="game"></canvas>
+      <div id="game-frame" class="game-frame">
+        <canvas id="game"></canvas>
+        <div id="hud-score" class="hud-score is-hidden" aria-live="polite" aria-atomic="true">
+          SCORE : <span id="hud-score-value">0</span>
+        </div>
+      </div>
 
       <div id="title-screen" class="screen-overlay" aria-hidden="false">
         <div class="title-card">

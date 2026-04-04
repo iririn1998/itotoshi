@@ -85,5 +85,7 @@ export const tuning = {
      * 当たり判定で壁 AABB を膨らませる量（px）。{@link tuning.lineActor.lineWidth} の半分に加算する。
      */
     hitInflationPx: 2,
+    /** 隙間を一度通過したときに加算するスコア */
+    scorePerGapPass: 1,
   },
 } as const;

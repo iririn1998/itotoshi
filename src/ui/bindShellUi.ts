@@ -42,6 +42,21 @@ export const bindShellUi = (game: Engine, gameplayScene: GameplayScene): void =>
   const btnGameOverRetry = requireElement<HTMLButtonElement>("btn-game-over-retry");
   const btnGameOverHome = requireElement<HTMLButtonElement>("btn-game-over-home");
   const appShell = requireElement<HTMLDivElement>("app-shell");
+  const hudScore = requireElement<HTMLDivElement>("hud-score");
+  const hudScoreValue = requireElement<HTMLSpanElement>("hud-score-value");
+
+  const setGameplayHudVisible = (visible: boolean): void => {
+    hudScore.classList.toggle("is-hidden", !visible);
+  };
+
+  const syncHudScoreText = (value: number): void => {
+    hudScoreValue.textContent = String(value);
+  };
+
+  gameplayScene.session.addScoreChangeListener((score) => {
+    syncHudScoreText(score);
+  });
+  syncHudScoreText(gameplayScene.session.score);
 
   const restoreShellInertAfterGameOver = (): void => {
     for (const child of appShell.children) {
@@ -98,16 +113,19 @@ export const bindShellUi = (game: Engine, gameplayScene: GameplayScene): void =>
     hideGameOver();
     setRankingModalOpen(false, { restoreFocus: false });
     setOverlayVisible(titleScreen, false);
+    setGameplayHudVisible(true);
     void game.goToScene(GameScene.gameplay);
   });
 
   btnGameOverRetry.addEventListener("click", () => {
     hideGameOver();
+    setGameplayHudVisible(true);
     gameplayScene.resetRound();
   });
 
   btnGameOverHome.addEventListener("click", () => {
     hideGameOver();
+    setGameplayHudVisible(false);
     setOverlayVisible(titleScreen, true);
     void game.goToScene(GameScene.title);
   });
