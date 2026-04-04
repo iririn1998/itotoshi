@@ -1,13 +1,42 @@
 <!doctype html>
-<html lang="en">
+<html lang="ja">
   <head>
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>itotoshi</title>
+    <title>瞬糸（SHUN-SHI）</title>
   </head>
   <body>
-    <canvas id="game"></canvas>
+    <div id="app-shell">
+      <canvas id="game"></canvas>
+
+      <div id="title-screen" class="screen-overlay" aria-hidden="false">
+        <div class="title-card">
+          <h1 class="game-title">
+            <span class="game-title-ja">瞬糸</span>
+            <span class="game-title-en" lang="en">SHUN-SHI</span>
+          </h1>
+          <div class="title-actions">
+            <button type="button" id="btn-game-start" class="btn btn-primary">
+              ゲームスタート
+            </button>
+            <button type="button" id="btn-ranking" class="btn btn-secondary">ランキング</button>
+          </div>
+        </div>
+      </div>
+
+      <div
+        id="ranking-screen"
+        class="screen-overlay screen-overlay--modal is-hidden"
+        aria-hidden="true"
+      >
+        <div class="modal-card" role="dialog" aria-labelledby="ranking-heading">
+          <h2 id="ranking-heading" class="modal-title">ランキング</h2>
+          <p class="modal-body">記録の表示は今後追加予定です。</p>
+          <button type="button" id="btn-ranking-back" class="btn btn-secondary">戻る</button>
+        </div>
+      </div>
+    </div>
     <script type="module" src="/src/main.ts"></script>
   </body>
 </html>
