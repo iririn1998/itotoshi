@@ -40,16 +40,17 @@ export class ThreadWallCollisionActor extends Actor {
       return;
     }
 
+    const p1 = pts[pts.length - 2]!;
+    const p2 = pts[pts.length - 1]!;
+
     for (const gate of this.spawner.getGates()) {
       for (const box of gate.getWallHitBoxes(pad)) {
-        for (let i = 0; i < pts.length - 1; i++) {
-          const a = pts[i];
-          const b = pts[i + 1];
-          if (segmentIntersectsAabb(a.x, a.y, b.x, b.y, box.left, box.top, box.right, box.bottom)) {
-            this.session.isGameOver = true;
-            this.onHit();
-            return;
-          }
+        if (
+          segmentIntersectsAabb(p1.x, p1.y, p2.x, p2.y, box.left, box.top, box.right, box.bottom)
+        ) {
+          this.session.isGameOver = true;
+          this.onHit();
+          return;
         }
       }
     }
