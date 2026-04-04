@@ -39,9 +39,14 @@ export class ThreadHoleSpawnerActor extends Actor {
     const scene = engine.currentScene;
 
     this.spawnAccumMs += delta;
+    const baseSpawnX = scene.camera.viewport.right + th.spawnBeyondViewportRightPx;
+    const spawnSpacingX =
+      (tuning.lineActor.initialVelocityX * th.spawnIntervalMs) / tuning.msPerSecond;
+    let spawnIndex = 0;
     while (this.spawnAccumMs >= th.spawnIntervalMs) {
       this.spawnAccumMs -= th.spawnIntervalMs;
-      const spawnX = scene.camera.viewport.right + th.spawnBeyondViewportRightPx;
+      const spawnX = baseSpawnX + spawnIndex * spawnSpacingX;
+      spawnIndex += 1;
       const gate = new ThreadHoleGateActor();
       gate.pos.setTo(spawnX, 0);
       gate.anchor.setTo(0, 0);
