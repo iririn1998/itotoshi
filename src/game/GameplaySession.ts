@@ -4,22 +4,34 @@ export class GameplaySession {
   /** 現在のスコア */
   score = 0;
 
-  private onScoreChange: ((score: number) => void) | null = null;
+  private readonly scoreChangeListeners = new Set<(score: number) => void>();
 
-  /** スコアが変わったときに呼ぶコールバックを登録する（null で解除） */
-  setScoreChangeHandler(handler: ((score: number) => void) | null): void {
-    this.onScoreChange = handler;
+  /** スコア変更時に呼ばれるリスナーを登録する */
+  addScoreChangeListener(listener: (score: number) => void): void {
+    this.scoreChangeListeners.add(listener);
   }
 
-  /** スコアを delta だけ加算し、登録済みハンドラに通知する */
+  /** {@link addScoreChangeListener} で登録したリスナーを解除する */
+  removeScoreChangeListener(listener: (score: number) => void): void {
+    this.scoreChangeListeners.delete(listener);
+  }
+
+  private notifyScoreChange(): void {
+    const { score } = this;
+    for (const listener of this.scoreChangeListeners) {
+      listener(score);
+    }
+  }
+
+  /** スコアを delta だけ加算し、登録済みリスナーに通知する */
   addScore(delta: number): void {
     this.score += delta;
-    this.onScoreChange?.(this.score);
+    this.notifyScoreChange();
   }
 
   reset(): void {
     this.isGameOver = false;
     this.score = 0;
-    this.onScoreChange?.(this.score);
+    this.notifyScoreChange();
   }
 }

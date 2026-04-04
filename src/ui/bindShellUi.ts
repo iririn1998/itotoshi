@@ -53,7 +53,7 @@ export const bindShellUi = (game: Engine, gameplayScene: GameplayScene): void =>
     hudScoreValue.textContent = String(value);
   };
 
-  gameplayScene.session.setScoreChangeHandler((score) => {
+  gameplayScene.session.addScoreChangeListener((score) => {
     syncHudScoreText(score);
   });
   syncHudScoreText(gameplayScene.session.score);
