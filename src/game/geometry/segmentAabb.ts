@@ -1,7 +1,7 @@
 /**
  * 線分 AB と軸平行矩形（閉区間）の交差判定（Liang–Barsky）。
  */
-export function segmentIntersectsAabb(
+export const segmentIntersectsAabb = (
   ax: number,
   ay: number,
   bx: number,
@@ -10,7 +10,7 @@ export function segmentIntersectsAabb(
   minY: number,
   maxX: number,
   maxY: number,
-): boolean {
+): boolean => {
   let u1 = 0;
   let u2 = 1;
   const dx = bx - ax;
@@ -46,4 +46,4 @@ export function segmentIntersectsAabb(
     }
   }
   return u1 <= u2;
-}
+};
