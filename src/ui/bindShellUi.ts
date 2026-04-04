@@ -41,6 +41,19 @@ export const bindShellUi = (game: Engine, gameplayScene: GameplayScene): void =>
   const btnRankingBack = requireElement<HTMLButtonElement>("btn-ranking-back");
   const btnGameOverRetry = requireElement<HTMLButtonElement>("btn-game-over-retry");
   const btnGameOverHome = requireElement<HTMLButtonElement>("btn-game-over-home");
+  const appShell = requireElement<HTMLDivElement>("app-shell");
+
+  const restoreShellInertAfterGameOver = (): void => {
+    for (const child of appShell.children) {
+      if (child === gameOverScreen) {
+        continue;
+      }
+      child.removeAttribute("inert");
+      if (child instanceof HTMLElement) {
+        child.setAttribute("aria-hidden", child.classList.contains("is-hidden") ? "true" : "false");
+      }
+    }
+  };
 
   const setRankingModalOpen = (open: boolean, options?: { restoreFocus?: boolean }): void => {
     const restoreFocus = options?.restoreFocus !== false;
@@ -56,10 +69,18 @@ export const bindShellUi = (game: Engine, gameplayScene: GameplayScene): void =>
 
   const hideGameOver = (): void => {
     setOverlayVisible(gameOverScreen, false);
+    restoreShellInertAfterGameOver();
   };
 
   const showGameOver = (): void => {
     setOverlayVisible(gameOverScreen, true);
+    for (const child of appShell.children) {
+      if (child === gameOverScreen) {
+        continue;
+      }
+      child.setAttribute("inert", "");
+      child.setAttribute("aria-hidden", "true");
+    }
     focusElement(gameOverDialog);
   };
 
