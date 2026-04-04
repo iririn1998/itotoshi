@@ -9,6 +9,7 @@ const th = tuning.threadHoles;
 
 /**
  * 軌跡セグメントと壁当たりを検査し、接触時にセッションをゲームオーバーにする。
+ * ゲート右端を隙間の Y 範囲内で左から右へ跨いだときにスコアを加算する。
  */
 export class ThreadWallCollisionActor extends Actor {
   private readonly session: GameplaySession;
@@ -52,6 +53,29 @@ export class ThreadWallCollisionActor extends Actor {
           this.onHit();
           return;
         }
+      }
+    }
+
+    for (const gate of this.spawner.getGates()) {
+      if (gate.passScored) {
+        continue;
+      }
+      const x0 = p1.x;
+      const x1 = p2.x;
+      const exitX = gate.pos.x + th.wallThicknessX;
+      if (x0 >= exitX || x1 < exitX) {
+        continue;
+      }
+      const dx = x1 - x0;
+      if (dx <= 0) {
+        continue;
+      }
+      const t = (exitX - x0) / dx;
+      const yAt = p1.y + t * (p2.y - p1.y);
+      const { minY, maxY } = gate.getGapYRange();
+      if (yAt >= minY && yAt <= maxY) {
+        gate.passScored = true;
+        this.session.addScore(1);
       }
     }
   };

@@ -8,6 +8,9 @@ export type WallHitBox = { left: number; top: number; right: number; bottom: num
  * 上下の矩形のあいだに隙間を空けたゲート。糸（軌跡）がその隙間を通る想定。
  */
 export class ThreadHoleGateActor extends Actor {
+  /** このゲートで隙間通過スコアを既に加算したか */
+  passScored = false;
+
   private wallThicknessX = 0;
   private topHeight = 0;
   private bottomY = 0;
@@ -77,4 +80,11 @@ export class ThreadHoleGateActor extends Actor {
 
     return [top, bottom];
   };
+
+  /**
+   * 上下壁に挟まれた隙間の Y 範囲（ワールド座標、上端・下端。壁に接する境界を含む）。
+   */
+  getGapYRange(): { minY: number; maxY: number } {
+    return { minY: this.topHeight, maxY: this.bottomY };
+  }
 }
