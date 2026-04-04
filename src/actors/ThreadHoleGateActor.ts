@@ -8,6 +8,13 @@ export type WallHitBox = { left: number; top: number; right: number; bottom: num
  * 上下の矩形のあいだに隙間を空けたゲート。糸（軌跡）がその隙間を通る想定。
  */
 export class ThreadHoleGateActor extends Actor {
+  private wallThicknessX = 0;
+  private topHeight = 0;
+  private bottomY = 0;
+  private bottomHeight = 0;
+  private readonly hitBoxTop: WallHitBox = { left: 0, top: 0, right: 0, bottom: 0 };
+  private readonly hitBoxBottom: WallHitBox = { left: 0, top: 0, right: 0, bottom: 0 };
+
   onInitialize = (): void => {
     const th = tuning.threadHoles;
     const vh = tuning.gameViewport.height;
@@ -15,9 +22,14 @@ export class ThreadHoleGateActor extends Actor {
     const gapTop = th.gapCenterWorldY - gapHalf;
     const gapBottom = th.gapCenterWorldY + gapHalf;
 
-    const topHeight = Math.max(0, gapTop);
-    const bottomY = gapBottom;
-    const bottomHeight = Math.max(0, vh - gapBottom);
+    this.wallThicknessX = th.wallThicknessX;
+    this.topHeight = Math.max(0, gapTop);
+    this.bottomY = gapBottom;
+    this.bottomHeight = Math.max(0, vh - gapBottom);
+
+    const topHeight = this.topHeight;
+    const bottomY = this.bottomY;
+    const bottomHeight = this.bottomHeight;
 
     const topRect = new Rectangle({
       width: th.wallThicknessX,
@@ -47,32 +59,22 @@ export class ThreadHoleGateActor extends Actor {
    * 描画と同じ上下壁の AABB（ワールド座標）。`inflation` で法線方向に膨らませて線の太さ分を近似する。
    */
   getWallHitBoxes = (inflation: number): [WallHitBox, WallHitBox] => {
-    const hole = tuning.threadHoles;
-    const vh = tuning.gameViewport.height;
-    const gapHalf = hole.gapHeightPx / 2;
-    const gapTop = hole.gapCenterWorldY - gapHalf;
-    const gapBottom = hole.gapCenterWorldY + gapHalf;
-    const topHeight = Math.max(0, gapTop);
-    const bottomY = gapBottom;
-    const bottomHeight = Math.max(0, vh - gapBottom);
-
     const x0 = this.pos.x;
-    const x1 = x0 + hole.wallThicknessX;
+    const x1 = x0 + this.wallThicknessX;
     const pad = inflation;
 
-    return [
-      {
-        left: x0 - pad,
-        top: 0 - pad,
-        right: x1 + pad,
-        bottom: topHeight + pad,
-      },
-      {
-        left: x0 - pad,
-        top: bottomY - pad,
-        right: x1 + pad,
-        bottom: bottomY + bottomHeight + pad,
-      },
-    ];
+    const top = this.hitBoxTop;
+    top.left = x0 - pad;
+    top.top = 0 - pad;
+    top.right = x1 + pad;
+    top.bottom = this.topHeight + pad;
+
+    const bottom = this.hitBoxBottom;
+    bottom.left = x0 - pad;
+    bottom.top = this.bottomY - pad;
+    bottom.right = x1 + pad;
+    bottom.bottom = this.bottomY + this.bottomHeight + pad;
+
+    return [top, bottom];
   };
 }
