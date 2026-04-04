@@ -1,6 +1,6 @@
-import { Actor, type Engine } from "excalibur";
+import { Actor, vec, type Engine, type Vector } from "excalibur";
 import { GameplaySession } from "../game/GameplaySession";
-import { segmentIntersectsAabb } from "../game/geometry/segmentAabb";
+import { segmentAabbClip, segmentAabbEntryT } from "../game/geometry/segmentAabb";
 import { tuning } from "../game/tuning";
 import { LineActor } from "./LineActor";
 import { ThreadHoleSpawnerActor } from "./ThreadHoleSpawnerActor";
@@ -15,13 +15,13 @@ export class ThreadWallCollisionActor extends Actor {
   private readonly session: GameplaySession;
   private readonly line: LineActor;
   private readonly spawner: ThreadHoleSpawnerActor;
-  private readonly onHit: () => void;
+  private readonly onHit: (hitWorldPos: Vector) => void;
 
   constructor(
     session: GameplaySession,
     line: LineActor,
     spawner: ThreadHoleSpawnerActor,
-    onHit: () => void,
+    onHit: (hitWorldPos: Vector) => void,
   ) {
     super();
     this.session = session;
@@ -48,11 +48,22 @@ export class ThreadWallCollisionActor extends Actor {
 
     for (const gate of gates) {
       for (const box of gate.getWallHitBoxes(pad)) {
-        if (
-          segmentIntersectsAabb(p1.x, p1.y, p2.x, p2.y, box.left, box.top, box.right, box.bottom)
-        ) {
+        const clip = segmentAabbClip(
+          p1.x,
+          p1.y,
+          p2.x,
+          p2.y,
+          box.left,
+          box.top,
+          box.right,
+          box.bottom,
+        );
+        const tHit = segmentAabbEntryT(clip);
+        if (tHit !== null) {
+          const dx = p2.x - p1.x;
+          const dy = p2.y - p1.y;
           this.session.isGameOver = true;
-          this.onHit();
+          this.onHit(vec(p1.x + tHit * dx, p1.y + tHit * dy));
           return;
         }
       }

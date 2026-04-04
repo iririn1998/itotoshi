@@ -88,4 +88,24 @@ export const tuning = {
     /** 隙間を一度通過したときに加算するスコア */
     scorePerGapPass: 1,
   },
+
+  /**
+   * 壁接触でゲームオーバーになった位置の爆発演出（色は白系のみ）。
+   */
+  hitExplosion: {
+    durationMs: 620,
+    /** 細い火花ストリーク本数 */
+    sparkStreakCount: 36,
+    /** 小さな破片ドット数 */
+    debrisCount: 28,
+    /** ストリーク速度（px/s）レンジ */
+    sparkSpeedMin: 120,
+    sparkSpeedMax: 340,
+    /** ショックリングの最大半径（px） */
+    ringMaxRadiusPx: 72,
+    /** 遅れて広がるリングの本数 */
+    ringWaveCount: 4,
+    /** リング波と波の間隔（ms） */
+    ringWaveStaggerMs: 48,
+  },
 } as const;

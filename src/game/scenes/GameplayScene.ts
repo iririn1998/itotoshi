@@ -1,4 +1,5 @@
-import { type Engine, Scene } from "excalibur";
+import { type Engine, Scene, type Vector } from "excalibur";
+import { HitExplosionActor } from "../../actors/HitExplosionActor";
 import { LineActor } from "../../actors/LineActor";
 import { ThreadHoleSpawnerActor } from "../../actors/ThreadHoleSpawnerActor";
 import { ThreadWallCollisionActor } from "../../actors/ThreadWallCollisionActor";
@@ -18,12 +19,19 @@ export class GameplayScene extends Scene {
     this.onGameOverUi = handler;
   }
 
-  private readonly handleWallHit = (): void => {
+  private readonly handleWallHit = (hitWorldPos: Vector): void => {
+    this.add(new HitExplosionActor(hitWorldPos));
     this.onGameOverUi?.();
   };
 
   /** プレイ状態を初期化（シーン入場・リトライ・タイトルへ戻る前の掃除） */
   resetRound(): void {
+    const explosions = this.actors.filter(
+      (a): a is HitExplosionActor => a instanceof HitExplosionActor,
+    );
+    for (const a of explosions) {
+      a.kill();
+    }
     this.session.reset();
     this.lineActor.resetToInitialState();
     this.spawner.resetState();
