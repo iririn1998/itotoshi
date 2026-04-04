@@ -16,7 +16,7 @@ export const tuning = {
    * 論理解像度（FitScreen 時の設計上の基準サイズ）。
    */
   gameViewport: {
-    width: 800,
+    width: 480,
     height: 600,
   },
 
@@ -27,7 +27,7 @@ export const tuning = {
    */
   camera: {
     /** 追従対象の先端より先に見る水平オフセット（px） */
-    lookaheadX: 200,
+    lookaheadX: 120,
     /** カメラの固定 Y（ワールド座標）。X のみ追従する */
     fixedWorldY: world.baselineY,
   },
