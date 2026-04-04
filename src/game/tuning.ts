@@ -79,8 +79,8 @@ export const tuning = {
     gapHeightPx: 112,
     /** 隙間の中心 Y。通常は {@link tuning.world.baselineY} と揃えて先端の基準線付近に穴を開ける */
     gapCenterWorldY: world.baselineY,
-    /** 画面外判定でビューポート左端からさらに左へ足す余白（px） */
-    cullMarginWorld: 64,
+    /** 画面外判定でビューポート左端からさらに左へ足す余白（ワールド px） */
+    cullMarginWorldPx: 64,
     /**
      * 当たり判定で壁 AABB を膨らませる量（px）。{@link tuning.lineActor.lineWidth} の半分に加算する。
      */

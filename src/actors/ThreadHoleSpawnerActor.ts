@@ -49,7 +49,7 @@ export class ThreadHoleSpawnerActor extends Actor {
       this.gates.push(gate);
     }
 
-    const cullX = scene.camera.viewport.left - th.cullMarginWorld;
+    const cullX = scene.camera.viewport.left - th.cullMarginWorldPx;
     let write = 0;
     for (let i = 0; i < this.gates.length; i++) {
       const gate = this.gates[i];
