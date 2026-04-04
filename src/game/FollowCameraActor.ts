@@ -1,4 +1,5 @@
 import { Actor, Engine, Vector } from "excalibur";
+import { GameplaySession } from "./GameplaySession";
 import { tuning } from "./tuning";
 
 const camTuning = tuning.camera;
@@ -14,13 +15,18 @@ export type CameraFollowTarget = {
  */
 export class FollowCameraActor extends Actor {
   private readonly followTarget: CameraFollowTarget;
+  private readonly session: GameplaySession;
 
-  constructor(followTarget: CameraFollowTarget) {
+  constructor(followTarget: CameraFollowTarget, session: GameplaySession) {
     super();
     this.followTarget = followTarget;
+    this.session = session;
   }
 
   onPreUpdate = (engine: Engine) => {
+    if (this.session.isGameOver) {
+      return;
+    }
     engine.currentScene.camera.pos.setTo(
       this.followTarget.headPos.x + camTuning.lookaheadX,
       camTuning.fixedWorldY,

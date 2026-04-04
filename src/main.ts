@@ -10,7 +10,7 @@ import { bindShellUi } from "./ui/bindShellUi";
 // Canvas 2D で一本のパスとして stroke すると連続した線に見える。
 Flags.useCanvasGraphicsContext();
 
-const game = createGame();
-bindShellUi(game);
+const { game, gameplayScene } = createGame();
+bindShellUi(game, gameplayScene);
 
 void game.start(GameScene.title);

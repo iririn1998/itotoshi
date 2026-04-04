@@ -8,6 +8,7 @@ import {
   vec,
   type Engine,
 } from "excalibur";
+import { GameplaySession } from "../game/GameplaySession";
 import { tuning } from "../game/tuning";
 import { isAnyPointerDown } from "../input/pointers";
 
@@ -49,6 +50,26 @@ export class LineActor extends Actor {
    * 軌跡のローカル AABB（{@link pos}＝先端と同一）。トリム無しフレームは平行移動＋先端 combine で O(1) 更新する。
    */
   private trailLocalBounds: BoundingBox | null = null;
+
+  private readonly session: GameplaySession;
+
+  constructor(session: GameplaySession) {
+    super();
+    this.session = session;
+  }
+
+  /** プレイ開始／リトライ時に軌跡と物理を初期値へ戻す */
+  resetToInitialState = (): void => {
+    this.points.length = 0;
+    this.headPos.setTo(lineTuning.initialHeadX, lineTuning.baselineWorldY);
+    this.velocity.setTo(lineTuning.initialVelocityX, lineTuning.initialVelocityY);
+    this.pos.setTo(this.headPos.x, this.headPos.y);
+    this.trailLocalBounds = null;
+    this.points.push(this.headPos.clone());
+    const halfLine = Math.ceil(this.lineWidth / 2);
+    this.trailLocalBounds = this.recomputeTrailLocalBounds(this.pos.x, this.pos.y, halfLine);
+    this.graphics.localBounds = this.trailLocalBounds;
+  };
 
   private trimTrail = (engine: Engine): boolean => {
     const cam = engine.currentScene.camera;
@@ -141,6 +162,10 @@ export class LineActor extends Actor {
   };
 
   onPreUpdate = (engine: Engine, delta: number) => {
+    if (this.session.isGameOver) {
+      return;
+    }
+
     const dt = delta / tuning.msPerSecond;
 
     const prevHeadX = this.headPos.x;

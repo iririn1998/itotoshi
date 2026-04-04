@@ -53,6 +53,20 @@ canvas {
   background: #000000;
 }
 
+/* ゲームオーバー: 背面のキャンバスを隠さない（文字・操作はカード上にのみ） */
+.screen-overlay--game-over {
+  background: transparent;
+}
+
+.modal-card--game-over {
+  background: rgba(10, 10, 14, 0.82);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  box-shadow:
+    0 12px 40px rgba(0, 0, 0, 0.55),
+    0 0 0 1px rgba(255, 255, 255, 0.12) inset;
+}
+
 .screen-overlay.is-hidden {
   display: none;
 }
@@ -153,4 +167,22 @@ canvas {
 
 .modal-card .btn {
   width: 100%;
+}
+
+.game-over-lead {
+  margin-bottom: 20px;
+}
+
+.game-over-actions {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  gap: 12px;
+  justify-content: center;
+}
+
+.game-over-actions .btn {
+  width: auto;
+  min-width: 140px;
+  flex: 1 1 120px;
 }

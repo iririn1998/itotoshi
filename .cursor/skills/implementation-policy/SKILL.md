@@ -24,7 +24,9 @@ description: >-
 
 ```typescript
 // モジュール
-export const createFoo = () => { /* ... */ };
+export const createFoo = () => {
+  /* ... */
+};
 const helper = (x: number) => x * 2;
 
 // クラス

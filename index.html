@@ -27,6 +27,29 @@
       </div>
 
       <div
+        id="game-over-screen"
+        class="screen-overlay screen-overlay--game-over is-hidden"
+        aria-hidden="true"
+      >
+        <div
+          class="modal-card modal-card--game-over"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="game-over-heading"
+          tabindex="-1"
+        >
+          <h2 id="game-over-heading" class="modal-title">ゲームオーバー</h2>
+          <p class="modal-body game-over-lead">糸が壁に触れました。</p>
+          <div class="game-over-actions">
+            <button type="button" id="btn-game-over-retry" class="btn btn-primary">リトライ</button>
+            <button type="button" id="btn-game-over-home" class="btn btn-secondary">
+              ホームへ戻る
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div
         id="ranking-screen"
         class="screen-overlay screen-overlay--modal is-hidden"
         aria-hidden="true"
