@@ -1,4 +1,5 @@
 import { Actor, type Engine } from "excalibur";
+import { GameplaySession } from "../game/GameplaySession";
 import { ThreadHoleGateActor } from "./ThreadHoleGateActor";
 import { tuning } from "../game/tuning";
 
@@ -11,8 +12,30 @@ const th = tuning.threadHoles;
 export class ThreadHoleSpawnerActor extends Actor {
   private readonly gates: ThreadHoleGateActor[] = [];
   private spawnAccumMs = 0;
+  private readonly session: GameplaySession;
+
+  constructor(session: GameplaySession) {
+    super();
+    this.session = session;
+  }
+
+  getGates(): readonly ThreadHoleGateActor[] {
+    return this.gates;
+  }
+
+  resetState(): void {
+    for (const g of this.gates) {
+      g.kill();
+    }
+    this.gates.length = 0;
+    this.spawnAccumMs = 0;
+  }
 
   onPreUpdate = (engine: Engine, delta: number): void => {
+    if (this.session.isGameOver) {
+      return;
+    }
+
     const scene = engine.currentScene;
 
     this.spawnAccumMs += delta;

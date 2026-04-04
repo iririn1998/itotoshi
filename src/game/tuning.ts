@@ -81,5 +81,9 @@ export const tuning = {
     gapCenterWorldY: world.baselineY,
     /** 画面外判定でビューポート左端からさらに左へ足す余白（px） */
     cullMarginWorld: 64,
+    /**
+     * 当たり判定で壁 AABB を膨らませる量（px）。{@link tuning.lineActor.lineWidth} の半分に加算する。
+     */
+    hitInflationPx: 2,
   },
 } as const;
