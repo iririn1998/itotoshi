@@ -46,7 +46,7 @@ export class ThreadHoleGateActor extends Actor {
   /**
    * 描画と同じ上下壁の AABB（ワールド座標）。`inflation` で法線方向に膨らませて線の太さ分を近似する。
    */
-  getWallHitBoxes(inflation: number): [WallHitBox, WallHitBox] {
+  getWallHitBoxes = (inflation: number): [WallHitBox, WallHitBox] => {
     const hole = tuning.threadHoles;
     const vh = tuning.gameViewport.height;
     const gapHalf = hole.gapHeightPx / 2;
@@ -74,5 +74,5 @@ export class ThreadHoleGateActor extends Actor {
         bottom: bottomY + bottomHeight + pad,
       },
     ];
-  }
+  };
 }
