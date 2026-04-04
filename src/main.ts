@@ -1,4 +1,3 @@
-import "./style.css";
 import { Flags } from "excalibur";
 import { createGame } from "./game/createGame";
 import { GameScene } from "./game/sceneKeys";
