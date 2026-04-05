@@ -28,11 +28,10 @@ export class GameplayScene extends Scene {
   /** プレイ状態を初期化（シーン入場・リトライ・タイトルへ戻る前の掃除） */
   resetRound(): void {
     syncInputAfterRoundReset(this.engine);
-    const explosions = this.actors.filter(
-      (a): a is HitExplosionActor => a instanceof HitExplosionActor,
-    );
-    for (const a of explosions) {
-      a.kill();
+    for (const a of this.actors) {
+      if (a instanceof HitExplosionActor) {
+        a.kill();
+      }
     }
     this.session.reset();
     this.lineActor.resetToInitialState();
