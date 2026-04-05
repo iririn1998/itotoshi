@@ -1,6 +1,6 @@
 /**
- * 線分 P(u)=A+u(B-A), u∈[u1,u2] が軸平行矩形（閉区間）と重なる Liang–Barsky の結果。
- * 有限線分 AB（u∈[0,1]）との交差は `intersects && max(0,u1) <= min(1,u2)`。
+ * 線分 P(u)=A+u(B-A), u∈[0,1] を軸平行矩形（閉区間）に対して Liang–Barsky でクリップした結果。
+ * `u1`,`u2` は線分 AB の範囲 [0,1] にクリップ済みで、有限線分 AB との交差判定は `intersects` で表される。
  */
 export type SegmentAabbClip = {
   intersects: boolean;
