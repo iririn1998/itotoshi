@@ -6,6 +6,9 @@ import { LineActor } from "./LineActor";
 import { ThreadHoleSpawnerActor } from "./ThreadHoleSpawnerActor";
 
 const th = tuning.threadHoles;
+const vh = tuning.gameViewport.height;
+/** 画面上下端の帯状 AABB を Liang–Barsky で切るときの十分大きな座標幅 */
+const viewportBorderExtent = 1e7;
 
 /**
  * 軌跡セグメントと壁当たりを検査し、接触時にセッションをゲームオーバーにする。
@@ -43,6 +46,47 @@ export class ThreadWallCollisionActor extends Actor {
 
     const p1 = pts[pts.length - 2]!;
     const p2 = pts[pts.length - 1]!;
+
+    const xMin = -viewportBorderExtent;
+    const xMax = viewportBorderExtent;
+
+    const topBorderClip = segmentAabbClip(
+      p1.x,
+      p1.y,
+      p2.x,
+      p2.y,
+      xMin,
+      -viewportBorderExtent,
+      xMax,
+      pad,
+    );
+    const tTop = segmentAabbEntryT(topBorderClip);
+    if (tTop !== null) {
+      const dx = p2.x - p1.x;
+      const dy = p2.y - p1.y;
+      this.session.isGameOver = true;
+      this.onHit(vec(p1.x + tTop * dx, p1.y + tTop * dy));
+      return;
+    }
+
+    const bottomBorderClip = segmentAabbClip(
+      p1.x,
+      p1.y,
+      p2.x,
+      p2.y,
+      xMin,
+      vh - pad,
+      xMax,
+      viewportBorderExtent,
+    );
+    const tBottom = segmentAabbEntryT(bottomBorderClip);
+    if (tBottom !== null) {
+      const dx = p2.x - p1.x;
+      const dy = p2.y - p1.y;
+      this.session.isGameOver = true;
+      this.onHit(vec(p1.x + tBottom * dx, p1.y + tBottom * dy));
+      return;
+    }
 
     const gates = this.spawner.getGates();
 
