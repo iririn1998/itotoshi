@@ -82,7 +82,7 @@ export class HitExplosionActor extends Actor {
     for (let i = 0; i < rayCount; i++) {
       rays.push({
         angle: (i / rayCount) * Math.PI * 2 + (Math.random() - 0.5) * exRay.angleJitterRad,
-        maxLen: exRay.lenMinPx + Math.random() * exRay.lenMaxPx,
+        maxLen: exRay.lenMinPx + Math.random() * (exRay.lenMaxPx - exRay.lenMinPx),
         width: i % 2 === 0 ? exRay.widthWidePx : exRay.widthNarrowPx,
       });
     }
