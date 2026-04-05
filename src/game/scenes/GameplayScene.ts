@@ -5,6 +5,7 @@ import { ThreadHoleSpawnerActor } from "../../actors/ThreadHoleSpawnerActor";
 import { ThreadWallCollisionActor } from "../../actors/ThreadWallCollisionActor";
 import { FollowCameraActor } from "../FollowCameraActor";
 import { GameplaySession } from "../GameplaySession";
+import { syncInputAfterRoundReset } from "../../input/syncInputAfterRoundReset";
 
 /** ゲーム本編のメインシーン */
 export class GameplayScene extends Scene {
@@ -26,6 +27,7 @@ export class GameplayScene extends Scene {
 
   /** プレイ状態を初期化（シーン入場・リトライ・タイトルへ戻る前の掃除） */
   resetRound(): void {
+    syncInputAfterRoundReset(this.engine);
     const explosions = this.actors.filter(
       (a): a is HitExplosionActor => a instanceof HitExplosionActor,
     );
