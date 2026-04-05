@@ -46,6 +46,13 @@ export class ThreadWallCollisionActor extends Actor {
 
     const p1 = pts[pts.length - 2]!;
     const p2 = pts[pts.length - 1]!;
+    const dxSeg = p2.x - p1.x;
+    const dySeg = p2.y - p1.y;
+
+    const hitAtT = (t: number): void => {
+      this.session.isGameOver = true;
+      this.onHit(vec(p1.x + t * dxSeg, p1.y + t * dySeg));
+    };
 
     const xMin = -VIEWPORT_BORDER_EXTENT;
     const xMax = VIEWPORT_BORDER_EXTENT;
@@ -62,10 +69,7 @@ export class ThreadWallCollisionActor extends Actor {
     );
     const tTop = segmentAabbEntryT(topBorderClip);
     if (tTop !== null) {
-      const dx = p2.x - p1.x;
-      const dy = p2.y - p1.y;
-      this.session.isGameOver = true;
-      this.onHit(vec(p1.x + tTop * dx, p1.y + tTop * dy));
+      hitAtT(tTop);
       return;
     }
 
@@ -81,10 +85,7 @@ export class ThreadWallCollisionActor extends Actor {
     );
     const tBottom = segmentAabbEntryT(bottomBorderClip);
     if (tBottom !== null) {
-      const dx = p2.x - p1.x;
-      const dy = p2.y - p1.y;
-      this.session.isGameOver = true;
-      this.onHit(vec(p1.x + tBottom * dx, p1.y + tBottom * dy));
+      hitAtT(tBottom);
       return;
     }
 
@@ -104,10 +105,7 @@ export class ThreadWallCollisionActor extends Actor {
         );
         const tHit = segmentAabbEntryT(clip);
         if (tHit !== null) {
-          const dx = p2.x - p1.x;
-          const dy = p2.y - p1.y;
-          this.session.isGameOver = true;
-          this.onHit(vec(p1.x + tHit * dx, p1.y + tHit * dy));
+          hitAtT(tHit);
           return;
         }
       }
