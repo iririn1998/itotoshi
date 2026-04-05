@@ -1,10 +1,4 @@
-import {
-  Actor,
-  BoundingBox,
-  ExcaliburGraphicsContext2DCanvas,
-  Vector,
-  type Engine,
-} from "excalibur";
+import { Actor, Canvas, Vector, type Engine } from "excalibur";
 import { tuning } from "../game/tuning";
 
 const ex = tuning.hitExplosion;
@@ -91,135 +85,143 @@ export class HitExplosionActor extends Actor {
 
   onInitialize = (): void => {
     const reach = ex.ringMaxRadiusPx + ex.sparkSpeedMax * (ex.durationMs / tuning.msPerSecond);
-    this.graphics.localBounds = new BoundingBox(-reach, -reach, reach, reach);
+    const size = Math.max(1, Math.ceil(reach * 2));
 
-    this.graphics.onPostDraw = (ctx) => {
-      const t = Math.min(1, this.elapsedMs / this.durationMs);
-      const masterFade = 1 - easeOutQuad(t);
-      if (masterFade <= exDraw.masterFadeCutoff) {
-        return;
-      }
-      if (!(ctx instanceof ExcaliburGraphicsContext2DCanvas)) {
-        return;
-      }
-      const c = ctx.__ctx;
-      const sec = this.elapsedMs / tuning.msPerSecond;
+    this.graphics.use(
+      new Canvas({
+        width: size,
+        height: size,
+        smoothing: true,
+        draw: (c) => {
+          const t = Math.min(1, this.elapsedMs / this.durationMs);
+          const masterFade = 1 - easeOutQuad(t);
+          if (masterFade <= exDraw.masterFadeCutoff) {
+            return;
+          }
+          const sec = this.elapsedMs / tuning.msPerSecond;
 
-      c.save();
-      c.lineCap = "round";
-      c.lineJoin = "round";
+          c.save();
+          c.translate(size / 2, size / 2);
+          c.lineCap = "round";
+          c.lineJoin = "round";
 
-      // --- 外周のソフトグロー（白・低アルファ） ---
-      const glowR =
-        ex.ringMaxRadiusPx *
-        (exDraw.glowRadiusEaseMin + exDraw.glowRadiusEaseMax * easeOutCubic(t));
-      const gg = c.createRadialGradient(0, 0, 0, 0, 0, glowR);
-      gg.addColorStop(0, `rgba(255,255,255,${exDraw.glowCenterAlpha * masterFade})`);
-      gg.addColorStop(exDraw.glowMidStop, `rgba(255,255,255,${exDraw.glowMidAlpha * masterFade})`);
-      gg.addColorStop(1, "rgba(255,255,255,0)");
-      c.fillStyle = gg;
-      c.beginPath();
-      c.arc(0, 0, glowR, 0, Math.PI * 2);
-      c.fill();
+          // --- 外周のソフトグロー（白・低アルファ） ---
+          const glowR =
+            ex.ringMaxRadiusPx *
+            (exDraw.glowRadiusEaseMin + exDraw.glowRadiusEaseMax * easeOutCubic(t));
+          const gg = c.createRadialGradient(0, 0, 0, 0, 0, glowR);
+          gg.addColorStop(0, `rgba(255,255,255,${exDraw.glowCenterAlpha * masterFade})`);
+          gg.addColorStop(
+            exDraw.glowMidStop,
+            `rgba(255,255,255,${exDraw.glowMidAlpha * masterFade})`,
+          );
+          gg.addColorStop(1, "rgba(255,255,255,0)");
+          c.fillStyle = gg;
+          c.beginPath();
+          c.arc(0, 0, glowR, 0, Math.PI * 2);
+          c.fill();
 
-      // --- 中心フラッシュ（最初の数フレームで強く、その後は素早く減衰） ---
-      const flashPhase = Math.min(1, this.elapsedMs / exDraw.flashPhaseMs);
-      const flashAlpha = (1 - easeOutCubic(flashPhase)) * masterFade;
-      const coreR =
-        exDraw.coreRadiusBasePx +
-        exDraw.coreRadiusFlashScalePx * (1 - flashPhase) ** exDraw.coreRadiusExponent;
-      const cg = c.createRadialGradient(0, 0, 0, 0, 0, coreR);
-      cg.addColorStop(0, `rgba(255,255,255,${exDraw.coreAlphaCenter * flashAlpha})`);
-      cg.addColorStop(exDraw.coreStop1, `rgba(255,255,255,${exDraw.coreAlpha1 * flashAlpha})`);
-      cg.addColorStop(exDraw.coreStop2, `rgba(255,255,255,${exDraw.coreAlpha2 * flashAlpha})`);
-      cg.addColorStop(1, "rgba(255,255,255,0)");
-      c.fillStyle = cg;
-      c.beginPath();
-      c.arc(0, 0, coreR, 0, Math.PI * 2);
-      c.fill();
+          // --- 中心フラッシュ（最初の数フレームで強く、その後は素早く減衰） ---
+          const flashPhase = Math.min(1, this.elapsedMs / exDraw.flashPhaseMs);
+          const flashAlpha = (1 - easeOutCubic(flashPhase)) * masterFade;
+          const coreR =
+            exDraw.coreRadiusBasePx +
+            exDraw.coreRadiusFlashScalePx * (1 - flashPhase) ** exDraw.coreRadiusExponent;
+          const cg = c.createRadialGradient(0, 0, 0, 0, 0, coreR);
+          cg.addColorStop(0, `rgba(255,255,255,${exDraw.coreAlphaCenter * flashAlpha})`);
+          cg.addColorStop(exDraw.coreStop1, `rgba(255,255,255,${exDraw.coreAlpha1 * flashAlpha})`);
+          cg.addColorStop(exDraw.coreStop2, `rgba(255,255,255,${exDraw.coreAlpha2 * flashAlpha})`);
+          cg.addColorStop(1, "rgba(255,255,255,0)");
+          c.fillStyle = cg;
+          c.beginPath();
+          c.arc(0, 0, coreR, 0, Math.PI * 2);
+          c.fill();
 
-      // --- 遅延ショックリング（複数波、白ストローク） ---
-      for (let w = 0; w < ex.ringWaveCount; w++) {
-        const start = w * ex.ringWaveStaggerMs;
-        const wt = (this.elapsedMs - start) / (this.durationMs * exDraw.ringWaveDurationFactor);
-        if (wt <= 0 || wt >= 1) {
-          continue;
-        }
-        const eased = easeOutCubic(wt);
-        const ringInner = exDraw.ringInnerMinPx;
-        const ringR = ringInner + (ex.ringMaxRadiusPx - ringInner) * eased;
-        const ringAlpha =
-          (1 - wt) ** exDraw.ringAlphaExponent * masterFade * exDraw.ringStrokeAlphaScale;
-        c.strokeStyle = `rgba(255,255,255,${ringAlpha})`;
-        c.lineWidth = w === 0 ? exDraw.ringStrokeWidthPrimaryPx : exDraw.ringStrokeWidthSecondaryPx;
-        c.beginPath();
-        c.arc(0, 0, ringR, 0, Math.PI * 2);
-        c.stroke();
-      }
+          // --- 遅延ショックリング（複数波、白ストローク） ---
+          for (let w = 0; w < ex.ringWaveCount; w++) {
+            const start = w * ex.ringWaveStaggerMs;
+            const wt = (this.elapsedMs - start) / (this.durationMs * exDraw.ringWaveDurationFactor);
+            if (wt <= 0 || wt >= 1) {
+              continue;
+            }
+            const eased = easeOutCubic(wt);
+            const ringInner = exDraw.ringInnerMinPx;
+            const ringR = ringInner + (ex.ringMaxRadiusPx - ringInner) * eased;
+            const ringAlpha =
+              (1 - wt) ** exDraw.ringAlphaExponent * masterFade * exDraw.ringStrokeAlphaScale;
+            c.strokeStyle = `rgba(255,255,255,${ringAlpha})`;
+            c.lineWidth =
+              w === 0 ? exDraw.ringStrokeWidthPrimaryPx : exDraw.ringStrokeWidthSecondaryPx;
+            c.beginPath();
+            c.arc(0, 0, ringR, 0, Math.PI * 2);
+            c.stroke();
+          }
 
-      // --- 太い主軸レイ（スターバースト） ---
-      const rayT = Math.min(1, sec / exDraw.primaryRayExpandSec);
-      const rayEase = easeOutCubic(rayT);
-      const rayFade = (1 - Math.min(1, sec / exDraw.primaryRayFadeSec)) * masterFade;
-      c.strokeStyle = `rgba(255,255,255,${exDraw.primaryRayStrokeAlphaScale * rayFade})`;
-      for (const r of this.primaryRays) {
-        const len = r.maxLen * rayEase;
-        const x = Math.cos(r.angle) * len;
-        const y = Math.sin(r.angle) * len;
-        c.lineWidth = r.width;
-        c.beginPath();
-        c.moveTo(-x * exDraw.primaryRayTailPull, -y * exDraw.primaryRayTailPull);
-        c.lineTo(x, y);
-        c.stroke();
-      }
+          // --- 太い主軸レイ（スターバースト） ---
+          const rayT = Math.min(1, sec / exDraw.primaryRayExpandSec);
+          const rayEase = easeOutCubic(rayT);
+          const rayFade = (1 - Math.min(1, sec / exDraw.primaryRayFadeSec)) * masterFade;
+          c.strokeStyle = `rgba(255,255,255,${exDraw.primaryRayStrokeAlphaScale * rayFade})`;
+          for (const r of this.primaryRays) {
+            const len = r.maxLen * rayEase;
+            const x = Math.cos(r.angle) * len;
+            const y = Math.sin(r.angle) * len;
+            c.lineWidth = r.width;
+            c.beginPath();
+            c.moveTo(-x * exDraw.primaryRayTailPull, -y * exDraw.primaryRayTailPull);
+            c.lineTo(x, y);
+            c.stroke();
+          }
 
-      // --- 十字の強い一瞬のハイライト（白） ---
-      const crossT = Math.min(1, this.elapsedMs / exDraw.crossPhaseMs);
-      const crossAlpha =
-        (1 - crossT) ** exDraw.crossAlphaExponent * masterFade * exDraw.crossAlphaScale;
-      const crossLen = exDraw.crossLenBasePx + exDraw.crossLenFlashScalePx * (1 - crossT);
-      c.strokeStyle = `rgba(255,255,255,${crossAlpha})`;
-      c.lineWidth = exDraw.crossLineWidthPx;
-      c.beginPath();
-      c.moveTo(-crossLen, 0);
-      c.lineTo(crossLen, 0);
-      c.moveTo(0, -crossLen);
-      c.lineTo(0, crossLen);
-      c.stroke();
+          // --- 十字の強い一瞬のハイライト（白） ---
+          const crossT = Math.min(1, this.elapsedMs / exDraw.crossPhaseMs);
+          const crossAlpha =
+            (1 - crossT) ** exDraw.crossAlphaExponent * masterFade * exDraw.crossAlphaScale;
+          const crossLen = exDraw.crossLenBasePx + exDraw.crossLenFlashScalePx * (1 - crossT);
+          c.strokeStyle = `rgba(255,255,255,${crossAlpha})`;
+          c.lineWidth = exDraw.crossLineWidthPx;
+          c.beginPath();
+          c.moveTo(-crossLen, 0);
+          c.lineTo(crossLen, 0);
+          c.moveTo(0, -crossLen);
+          c.lineTo(0, crossLen);
+          c.stroke();
 
-      // --- 細い火花ストリーク ---
-      for (const s of this.streaks) {
-        const dist = s.speed * sec;
-        const x0 = Math.cos(s.angle) * dist;
-        const y0 = Math.sin(s.angle) * dist;
-        const tail = Math.max(0, dist - s.tail);
-        const x1 = Math.cos(s.angle) * tail;
-        const y1 = Math.sin(s.angle) * tail;
-        const streakFade = (1 - Math.min(1, sec / exDraw.streakFadeSec)) * masterFade;
-        c.strokeStyle = `rgba(255,255,255,${exDraw.streakStrokeAlphaScale * streakFade})`;
-        c.lineWidth = s.width;
-        c.beginPath();
-        c.moveTo(x1, y1);
-        c.lineTo(x0, y0);
-        c.stroke();
-      }
+          // --- 細い火花ストリーク ---
+          for (const s of this.streaks) {
+            const dist = s.speed * sec;
+            const x0 = Math.cos(s.angle) * dist;
+            const y0 = Math.sin(s.angle) * dist;
+            const tail = Math.max(0, dist - s.tail);
+            const x1 = Math.cos(s.angle) * tail;
+            const y1 = Math.sin(s.angle) * tail;
+            const streakFade = (1 - Math.min(1, sec / exDraw.streakFadeSec)) * masterFade;
+            c.strokeStyle = `rgba(255,255,255,${exDraw.streakStrokeAlphaScale * streakFade})`;
+            c.lineWidth = s.width;
+            c.beginPath();
+            c.moveTo(x1, y1);
+            c.lineTo(x0, y0);
+            c.stroke();
+          }
 
-      // --- 破片ドット ---
-      c.fillStyle = `rgba(255,255,255,${exDraw.debrisFillAlphaScale * masterFade})`;
-      for (const d of this.debris) {
-        const dist = d.speed * sec;
-        const px = Math.cos(d.angle) * dist;
-        const py = Math.sin(d.angle) * dist;
-        const dotFade = (1 - Math.min(1, sec / exDraw.debrisFadeSec)) * masterFade;
-        c.globalAlpha = dotFade;
-        c.beginPath();
-        c.arc(px, py, d.size * (1 - t * exDraw.debrisSizeShrinkWithT), 0, Math.PI * 2);
-        c.fill();
-      }
-      c.globalAlpha = 1;
+          // --- 破片ドット ---
+          c.fillStyle = `rgba(255,255,255,${exDraw.debrisFillAlphaScale * masterFade})`;
+          for (const d of this.debris) {
+            const dist = d.speed * sec;
+            const px = Math.cos(d.angle) * dist;
+            const py = Math.sin(d.angle) * dist;
+            const dotFade = (1 - Math.min(1, sec / exDraw.debrisFadeSec)) * masterFade;
+            c.globalAlpha = dotFade;
+            c.beginPath();
+            c.arc(px, py, d.size * (1 - t * exDraw.debrisSizeShrinkWithT), 0, Math.PI * 2);
+            c.fill();
+          }
+          c.globalAlpha = 1;
 
-      c.restore();
-    };
+          c.restore();
+        },
+      }),
+    );
   };
 
   onPreUpdate = (_engine: Engine, delta: number): void => {
