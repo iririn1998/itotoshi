@@ -67,20 +67,18 @@ canvas {
   height: auto;
 }
 
-/**
- * タイトル UI。キャンバスと同じ .game-frame 内に絶対配置し、
- * Excalibur FitScreen で伸縮した表示域とピクセル一致させる。
- */
-#title-screen {
-  position: absolute;
-  inset: 0;
-  z-index: 4;
+/* タイトル: オーバーレイはビューポート基準。内側の .game-frame で本枠と同一のボーダーを復元 */
+.screen-overlay--title {
+  z-index: 8;
+}
+
+.game-frame.title-screen-bounded {
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 16px;
-  box-sizing: border-box;
+  margin: 0;
   background: #000000;
+  line-height: normal;
 }
 
 #title-screen.is-hidden {
@@ -150,7 +148,10 @@ canvas {
 
 .title-card {
   text-align: center;
-  max-width: 420px;
+  /* .modal-card と同じ外寸・横パディング → ボタン有効幅をランキング／GO と一致 */
+  width: min(100%, 360px);
+  padding: 16px 24px;
+  box-sizing: border-box;
 }
 
 .game-title {
@@ -178,8 +179,13 @@ canvas {
 .title-actions {
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  gap: 12px;
   align-items: stretch;
+}
+
+.title-actions .btn {
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .btn {

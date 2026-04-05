@@ -14,8 +14,11 @@
         <div id="hud-score" class="hud-score is-hidden" aria-live="polite" aria-atomic="true">
           SCORE : <span id="hud-score-value">0</span>
         </div>
-        <!-- キャンバス表示域と同一矩形（.game-frame の内側）。枠線は .game-frame に一本化 -->
-        <div id="title-screen" aria-hidden="false">
+      </div>
+
+      <!-- ゲームオーバー／ランキングと同じ fixed オーバーレイ。ボタンをビューポート基準で同サイズにする -->
+      <div id="title-screen" class="screen-overlay screen-overlay--title" aria-hidden="false">
+        <div class="game-frame title-screen-bounded">
           <div class="title-card">
             <h1 class="game-title">
               <span class="game-title-ja">瞬糸</span>
