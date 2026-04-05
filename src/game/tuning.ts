@@ -136,5 +136,51 @@ export const tuning = {
       widthWidePx: 3,
       widthNarrowPx: 2,
     },
+    /** 壁接触爆発の Canvas 描画（グラデーション・減衰タイミング） */
+    draw: {
+      masterFadeCutoff: 0.02,
+
+      glowRadiusEaseMin: 0.35,
+      glowRadiusEaseMax: 0.85,
+      glowCenterAlpha: 0.22,
+      glowMidStop: 0.35,
+      glowMidAlpha: 0.08,
+
+      flashPhaseMs: 95,
+      coreRadiusBasePx: 3,
+      coreRadiusFlashScalePx: 42,
+      coreRadiusExponent: 1.8,
+      coreAlphaCenter: 0.98,
+      coreStop1: 0.2,
+      coreAlpha1: 0.55,
+      coreStop2: 0.55,
+      coreAlpha2: 0.12,
+
+      ringInnerMinPx: 6,
+      ringWaveDurationFactor: 0.72,
+      ringAlphaExponent: 1.15,
+      ringStrokeAlphaScale: 0.92,
+      ringStrokeWidthPrimaryPx: 3,
+      ringStrokeWidthSecondaryPx: 2,
+
+      primaryRayExpandSec: 0.14,
+      primaryRayFadeSec: 0.32,
+      primaryRayStrokeAlphaScale: 0.95,
+      primaryRayTailPull: 0.08,
+
+      crossPhaseMs: 70,
+      crossAlphaExponent: 2,
+      crossAlphaScale: 0.75,
+      crossLenBasePx: 8,
+      crossLenFlashScalePx: 52,
+      crossLineWidthPx: 2.5,
+
+      streakStrokeAlphaScale: 0.88,
+      streakFadeSec: 0.45,
+
+      debrisFillAlphaScale: 0.9,
+      debrisFadeSec: 0.5,
+      debrisSizeShrinkWithT: 0.35,
+    },
   },
 } as const;

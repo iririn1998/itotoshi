@@ -11,6 +11,7 @@ const ex = tuning.hitExplosion;
 const exSt = ex.streak;
 const exDeb = ex.debris;
 const exRay = ex.primaryRays;
+const exDraw = ex.draw;
 
 type SparkStreak = {
   readonly angle: number;
@@ -95,7 +96,7 @@ export class HitExplosionActor extends Actor {
     this.graphics.onPostDraw = (ctx) => {
       const t = Math.min(1, this.elapsedMs / this.durationMs);
       const masterFade = 1 - easeOutQuad(t);
-      if (masterFade <= 0.02) {
+      if (masterFade <= exDraw.masterFadeCutoff) {
         return;
       }
       if (!(ctx instanceof ExcaliburGraphicsContext2DCanvas)) {
@@ -109,10 +110,12 @@ export class HitExplosionActor extends Actor {
       c.lineJoin = "round";
 
       // --- 外周のソフトグロー（白・低アルファ） ---
-      const glowR = ex.ringMaxRadiusPx * (0.35 + 0.85 * easeOutCubic(t));
+      const glowR =
+        ex.ringMaxRadiusPx *
+        (exDraw.glowRadiusEaseMin + exDraw.glowRadiusEaseMax * easeOutCubic(t));
       const gg = c.createRadialGradient(0, 0, 0, 0, 0, glowR);
-      gg.addColorStop(0, `rgba(255,255,255,${0.22 * masterFade})`);
-      gg.addColorStop(0.35, `rgba(255,255,255,${0.08 * masterFade})`);
+      gg.addColorStop(0, `rgba(255,255,255,${exDraw.glowCenterAlpha * masterFade})`);
+      gg.addColorStop(exDraw.glowMidStop, `rgba(255,255,255,${exDraw.glowMidAlpha * masterFade})`);
       gg.addColorStop(1, "rgba(255,255,255,0)");
       c.fillStyle = gg;
       c.beginPath();
@@ -120,13 +123,15 @@ export class HitExplosionActor extends Actor {
       c.fill();
 
       // --- 中心フラッシュ（最初の数フレームで強く、その後は素早く減衰） ---
-      const flashPhase = Math.min(1, this.elapsedMs / 95);
+      const flashPhase = Math.min(1, this.elapsedMs / exDraw.flashPhaseMs);
       const flashAlpha = (1 - easeOutCubic(flashPhase)) * masterFade;
-      const coreR = 3 + 42 * (1 - flashPhase) ** 1.8;
+      const coreR =
+        exDraw.coreRadiusBasePx +
+        exDraw.coreRadiusFlashScalePx * (1 - flashPhase) ** exDraw.coreRadiusExponent;
       const cg = c.createRadialGradient(0, 0, 0, 0, 0, coreR);
-      cg.addColorStop(0, `rgba(255,255,255,${0.98 * flashAlpha})`);
-      cg.addColorStop(0.2, `rgba(255,255,255,${0.55 * flashAlpha})`);
-      cg.addColorStop(0.55, `rgba(255,255,255,${0.12 * flashAlpha})`);
+      cg.addColorStop(0, `rgba(255,255,255,${exDraw.coreAlphaCenter * flashAlpha})`);
+      cg.addColorStop(exDraw.coreStop1, `rgba(255,255,255,${exDraw.coreAlpha1 * flashAlpha})`);
+      cg.addColorStop(exDraw.coreStop2, `rgba(255,255,255,${exDraw.coreAlpha2 * flashAlpha})`);
       cg.addColorStop(1, "rgba(255,255,255,0)");
       c.fillStyle = cg;
       c.beginPath();
@@ -136,42 +141,45 @@ export class HitExplosionActor extends Actor {
       // --- 遅延ショックリング（複数波、白ストローク） ---
       for (let w = 0; w < ex.ringWaveCount; w++) {
         const start = w * ex.ringWaveStaggerMs;
-        const wt = (this.elapsedMs - start) / (this.durationMs * 0.72);
+        const wt = (this.elapsedMs - start) / (this.durationMs * exDraw.ringWaveDurationFactor);
         if (wt <= 0 || wt >= 1) {
           continue;
         }
         const eased = easeOutCubic(wt);
-        const ringR = 6 + (ex.ringMaxRadiusPx - 6) * eased;
-        const ringAlpha = (1 - wt) ** 1.15 * masterFade * 0.92;
+        const ringInner = exDraw.ringInnerMinPx;
+        const ringR = ringInner + (ex.ringMaxRadiusPx - ringInner) * eased;
+        const ringAlpha =
+          (1 - wt) ** exDraw.ringAlphaExponent * masterFade * exDraw.ringStrokeAlphaScale;
         c.strokeStyle = `rgba(255,255,255,${ringAlpha})`;
-        c.lineWidth = w === 0 ? 3 : 2;
+        c.lineWidth = w === 0 ? exDraw.ringStrokeWidthPrimaryPx : exDraw.ringStrokeWidthSecondaryPx;
         c.beginPath();
         c.arc(0, 0, ringR, 0, Math.PI * 2);
         c.stroke();
       }
 
       // --- 太い主軸レイ（スターバースト） ---
-      const rayT = Math.min(1, sec / 0.14);
+      const rayT = Math.min(1, sec / exDraw.primaryRayExpandSec);
       const rayEase = easeOutCubic(rayT);
-      const rayFade = (1 - Math.min(1, sec / 0.32)) * masterFade;
-      c.strokeStyle = `rgba(255,255,255,${0.95 * rayFade})`;
+      const rayFade = (1 - Math.min(1, sec / exDraw.primaryRayFadeSec)) * masterFade;
+      c.strokeStyle = `rgba(255,255,255,${exDraw.primaryRayStrokeAlphaScale * rayFade})`;
       for (const r of this.primaryRays) {
         const len = r.maxLen * rayEase;
         const x = Math.cos(r.angle) * len;
         const y = Math.sin(r.angle) * len;
         c.lineWidth = r.width;
         c.beginPath();
-        c.moveTo(-x * 0.08, -y * 0.08);
+        c.moveTo(-x * exDraw.primaryRayTailPull, -y * exDraw.primaryRayTailPull);
         c.lineTo(x, y);
         c.stroke();
       }
 
       // --- 十字の強い一瞬のハイライト（白） ---
-      const crossT = Math.min(1, this.elapsedMs / 70);
-      const crossAlpha = (1 - crossT) ** 2 * masterFade * 0.75;
-      const crossLen = 8 + 52 * (1 - crossT);
+      const crossT = Math.min(1, this.elapsedMs / exDraw.crossPhaseMs);
+      const crossAlpha =
+        (1 - crossT) ** exDraw.crossAlphaExponent * masterFade * exDraw.crossAlphaScale;
+      const crossLen = exDraw.crossLenBasePx + exDraw.crossLenFlashScalePx * (1 - crossT);
       c.strokeStyle = `rgba(255,255,255,${crossAlpha})`;
-      c.lineWidth = 2.5;
+      c.lineWidth = exDraw.crossLineWidthPx;
       c.beginPath();
       c.moveTo(-crossLen, 0);
       c.lineTo(crossLen, 0);
@@ -187,8 +195,8 @@ export class HitExplosionActor extends Actor {
         const tail = Math.max(0, dist - s.tail);
         const x1 = Math.cos(s.angle) * tail;
         const y1 = Math.sin(s.angle) * tail;
-        const streakFade = (1 - Math.min(1, sec / 0.45)) * masterFade;
-        c.strokeStyle = `rgba(255,255,255,${0.88 * streakFade})`;
+        const streakFade = (1 - Math.min(1, sec / exDraw.streakFadeSec)) * masterFade;
+        c.strokeStyle = `rgba(255,255,255,${exDraw.streakStrokeAlphaScale * streakFade})`;
         c.lineWidth = s.width;
         c.beginPath();
         c.moveTo(x1, y1);
@@ -197,15 +205,15 @@ export class HitExplosionActor extends Actor {
       }
 
       // --- 破片ドット ---
-      c.fillStyle = `rgba(255,255,255,${0.9 * masterFade})`;
+      c.fillStyle = `rgba(255,255,255,${exDraw.debrisFillAlphaScale * masterFade})`;
       for (const d of this.debris) {
         const dist = d.speed * sec;
         const px = Math.cos(d.angle) * dist;
         const py = Math.sin(d.angle) * dist;
-        const dotFade = (1 - Math.min(1, sec / 0.5)) * masterFade;
+        const dotFade = (1 - Math.min(1, sec / exDraw.debrisFadeSec)) * masterFade;
         c.globalAlpha = dotFade;
         c.beginPath();
-        c.arc(px, py, d.size * (1 - t * 0.35), 0, Math.PI * 2);
+        c.arc(px, py, d.size * (1 - t * exDraw.debrisSizeShrinkWithT), 0, Math.PI * 2);
         c.fill();
       }
       c.globalAlpha = 1;
