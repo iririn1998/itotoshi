@@ -8,7 +8,7 @@ import { ThreadHoleSpawnerActor } from "./ThreadHoleSpawnerActor";
 const th = tuning.threadHoles;
 const vh = tuning.gameViewport.height;
 /** 画面上下端の帯状 AABB を Liang–Barsky で切るときの十分大きな座標幅 */
-const viewportBorderExtent = 1e7;
+const VIEWPORT_BORDER_EXTENT = 1e7;
 
 /**
  * 軌跡セグメントと壁当たりを検査し、接触時にセッションをゲームオーバーにする。
@@ -47,8 +47,8 @@ export class ThreadWallCollisionActor extends Actor {
     const p1 = pts[pts.length - 2]!;
     const p2 = pts[pts.length - 1]!;
 
-    const xMin = -viewportBorderExtent;
-    const xMax = viewportBorderExtent;
+    const xMin = -VIEWPORT_BORDER_EXTENT;
+    const xMax = VIEWPORT_BORDER_EXTENT;
 
     const topBorderClip = segmentAabbClip(
       p1.x,
@@ -56,7 +56,7 @@ export class ThreadWallCollisionActor extends Actor {
       p2.x,
       p2.y,
       xMin,
-      -viewportBorderExtent,
+      -VIEWPORT_BORDER_EXTENT,
       xMax,
       pad,
     );
@@ -77,7 +77,7 @@ export class ThreadWallCollisionActor extends Actor {
       xMin,
       vh - pad,
       xMax,
-      viewportBorderExtent,
+      VIEWPORT_BORDER_EXTENT,
     );
     const tBottom = segmentAabbEntryT(bottomBorderClip);
     if (tBottom !== null) {
