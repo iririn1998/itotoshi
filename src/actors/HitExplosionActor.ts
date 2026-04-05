@@ -8,6 +8,9 @@ import {
 import { tuning } from "../game/tuning";
 
 const ex = tuning.hitExplosion;
+const exSt = ex.streak;
+const exDeb = ex.debris;
+const exRay = ex.primaryRays;
 
 type SparkStreak = {
   readonly angle: number;
@@ -51,12 +54,12 @@ export class HitExplosionActor extends Actor {
     const streaks: SparkStreak[] = [];
     const base = (Math.PI * 2) / n;
     for (let i = 0; i < n; i++) {
-      const jitter = (Math.random() - 0.5) * base * 0.5;
+      const jitter = (Math.random() - 0.5) * base * exSt.angleJitterHalfSpan;
       streaks.push({
         angle: i * base + jitter,
         speed: ex.sparkSpeedMin + Math.random() * (ex.sparkSpeedMax - ex.sparkSpeedMin),
-        tail: 10 + Math.random() * 22,
-        width: Math.random() < 0.25 ? 2.2 : 1.1,
+        tail: exSt.tailMinPx + Math.random() * exSt.tailJitterPx,
+        width: Math.random() < exSt.thickProbability ? exSt.widthThickPx : exSt.widthThinPx,
       });
     }
     this.streaks = streaks;
@@ -66,19 +69,20 @@ export class HitExplosionActor extends Actor {
     for (let i = 0; i < dCount; i++) {
       debris.push({
         angle: Math.random() * Math.PI * 2,
-        speed: 40 + Math.random() * (ex.sparkSpeedMax * 0.55),
-        size: 1.2 + Math.random() * 2.4,
+        speed:
+          exDeb.speedBasePxPerSec + Math.random() * (ex.sparkSpeedMax * exDeb.speedSparkMaxFactor),
+        size: exDeb.sizeMinPx + Math.random() * exDeb.sizeJitterPx,
       });
     }
     this.debris = debris;
 
-    const rayCount = 10;
+    const rayCount = exRay.count;
     const rays: PrimaryRay[] = [];
     for (let i = 0; i < rayCount; i++) {
       rays.push({
-        angle: (i / rayCount) * Math.PI * 2 + (Math.random() - 0.5) * 0.12,
-        maxLen: 28 + Math.random() * 38,
-        width: i % 2 === 0 ? 3 : 2,
+        angle: (i / rayCount) * Math.PI * 2 + (Math.random() - 0.5) * exRay.angleJitterRad,
+        maxLen: exRay.lenMinPx + Math.random() * exRay.lenMaxPx,
+        width: i % 2 === 0 ? exRay.widthWidePx : exRay.widthNarrowPx,
       });
     }
     this.primaryRays = rays;

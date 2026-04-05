@@ -108,5 +108,33 @@ export const tuning = {
     ringWaveCount: 4,
     /** リング波と波の間隔（ms） */
     ringWaveStaggerMs: 48,
+
+    /** 火花ストリークの長さ・太さ（生成時） */
+    streak: {
+      tailMinPx: 10,
+      tailJitterPx: 22,
+      /** 隣接ストリーク間隔に対する角度ジッターの半幅（0〜1） */
+      angleJitterHalfSpan: 0.5,
+      thickProbability: 0.25,
+      widthThickPx: 2.2,
+      widthThinPx: 1.1,
+    },
+    /** 破片ドット（生成時） */
+    debris: {
+      speedBasePxPerSec: 40,
+      /** {@link tuning.hitExplosion.sparkSpeedMax} に掛けて速度上限を作る係数 */
+      speedSparkMaxFactor: 0.55,
+      sizeMinPx: 1.2,
+      sizeJitterPx: 2.4,
+    },
+    /** 太い主軸レイ（スターバースト、生成時） */
+    primaryRays: {
+      count: 10,
+      angleJitterRad: 0.12,
+      lenMinPx: 28,
+      lenMaxPx: 38,
+      widthWidePx: 3,
+      widthNarrowPx: 2,
+    },
   },
 } as const;
