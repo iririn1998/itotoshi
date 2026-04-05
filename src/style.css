@@ -67,11 +67,6 @@ canvas {
   height: auto;
 }
 
-/* タイトル: オーバーレイはビューポート基準。内側の .game-frame で本枠と同一のボーダーを復元 */
-.screen-overlay--title {
-  z-index: 8;
-}
-
 .game-frame.title-screen-bounded {
   display: flex;
   align-items: center;
@@ -122,6 +117,11 @@ canvas {
   padding: 0;
   box-sizing: border-box;
   background: #000000;
+}
+
+/* タイトルはゲーム枠の下に置き、モーダル／ゲームオーバーは従来どおり前面（後勝ちで z-index を上書き） */
+.screen-overlay.screen-overlay--title {
+  z-index: 8;
 }
 
 .screen-overlay--modal {
