@@ -1,4 +1,10 @@
 :root {
+  /** 画面端からゲーム枠・オーバーレイまでのインセット（縦横のボーダーが画面内に収まる） */
+  --app-inset: 8px;
+  /** 論理解像度の縦横比。`tuning.gameViewport` と一致させること（FitContainer の枠サイズ用） */
+  --game-ar-w: 480;
+  --game-ar-h: 600;
+
   font-family: system-ui, "Segoe UI", Roboto, sans-serif;
   line-height: 1.5;
   font-weight: 400;
@@ -13,10 +19,15 @@
   -moz-osx-font-smoothing: grayscale;
 }
 
+html {
+  box-sizing: border-box;
+}
+
 body {
   margin: 0;
   min-width: 320px;
   min-height: 100vh;
+  box-sizing: border-box;
 }
 
 #app-shell {
@@ -25,23 +36,48 @@ body {
   align-items: center;
   justify-content: center;
   min-height: 100vh;
+  padding: var(--app-inset);
+  box-sizing: border-box;
 }
 
 canvas {
   display: block;
 }
 
-#app-shell > .game-frame {
-  margin: 0 auto;
-}
-
 .game-frame {
   position: relative;
-  display: inline-block;
+  display: block;
+  margin: 0 auto;
   line-height: 0;
   border: 2px solid rgba(255, 255, 255, 0.45);
   border-radius: 4px;
   box-sizing: content-box;
+  max-width: calc(100vw - 2 * var(--app-inset));
+  max-height: calc(100vh - 2 * var(--app-inset));
+  max-height: calc(100dvh - 2 * var(--app-inset));
+  width: min(
+    calc(100vw - 2 * var(--app-inset)),
+    calc((100vh - 2 * var(--app-inset)) * var(--game-ar-w) / var(--game-ar-h))
+  );
+  width: min(
+    calc(100vw - 2 * var(--app-inset)),
+    calc((100dvh - 2 * var(--app-inset)) * var(--game-ar-w) / var(--game-ar-h))
+  );
+  aspect-ratio: var(--game-ar-w) / var(--game-ar-h);
+  height: auto;
+}
+
+.game-frame.title-screen-bounded {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0;
+  background: #000000;
+  line-height: normal;
+}
+
+#title-screen.is-hidden {
+  display: none;
 }
 
 #game {
@@ -70,13 +106,22 @@ canvas {
 
 .screen-overlay {
   position: fixed;
-  inset: 0;
+  top: var(--app-inset);
+  right: var(--app-inset);
+  bottom: var(--app-inset);
+  left: var(--app-inset);
   z-index: 10;
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 24px;
+  padding: 0;
+  box-sizing: border-box;
   background: #000000;
+}
+
+/* タイトルはゲーム枠の下に置き、モーダル／ゲームオーバーは従来どおり前面（後勝ちで z-index を上書き） */
+.screen-overlay.screen-overlay--title {
+  z-index: 8;
 }
 
 .screen-overlay--modal {
@@ -103,7 +148,10 @@ canvas {
 
 .title-card {
   text-align: center;
-  max-width: 420px;
+  /* .modal-card と同じ外寸・横パディング → ボタン有効幅をランキング／GO と一致 */
+  width: min(100%, 360px);
+  padding: 16px 24px;
+  box-sizing: border-box;
 }
 
 .game-title {
@@ -131,8 +179,13 @@ canvas {
 .title-actions {
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  gap: 12px;
   align-items: stretch;
+}
+
+.title-actions .btn {
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .btn {

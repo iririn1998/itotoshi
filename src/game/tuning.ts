@@ -13,10 +13,11 @@ export const tuning = {
   msPerSecond: 1000,
 
   /**
-   * 論理解像度（FitScreen 時の設計上の基準サイズ）。
+   * 論理解像度（エンジン内部座標系の基準サイズ）。
+   * 表示は FitContainer ＋ style.css の `--game-ar-w` / `--game-ar-h` と揃えること。
    */
   gameViewport: {
-    width: 800,
+    width: 480,
     height: 600,
   },
 
@@ -27,7 +28,7 @@ export const tuning = {
    */
   camera: {
     /** 追従対象の先端より先に見る水平オフセット（px） */
-    lookaheadX: 200,
+    lookaheadX: 120,
     /** カメラの固定 Y（ワールド座標）。X のみ追従する */
     fixedWorldY: world.baselineY,
   },
@@ -87,5 +88,99 @@ export const tuning = {
     hitInflationPx: 2,
     /** 隙間を一度通過したときに加算するスコア */
     scorePerGapPass: 1,
+  },
+
+  /**
+   * 壁接触でゲームオーバーになった位置の爆発演出（色は白系のみ）。
+   */
+  hitExplosion: {
+    durationMs: 620,
+    /** 細い火花ストリーク本数 */
+    sparkStreakCount: 36,
+    /** 小さな破片ドット数 */
+    debrisCount: 28,
+    /** ストリーク速度（px/s）レンジ */
+    sparkSpeedMin: 120,
+    sparkSpeedMax: 340,
+    /** ショックリングの最大半径（px） */
+    ringMaxRadiusPx: 72,
+    /** 遅れて広がるリングの本数 */
+    ringWaveCount: 4,
+    /** リング波と波の間隔（ms） */
+    ringWaveStaggerMs: 48,
+
+    /** 火花ストリークの長さ・太さ（生成時） */
+    streak: {
+      tailMinPx: 10,
+      tailJitterPx: 22,
+      /** 隣接ストリーク間隔に対する角度ジッターの半幅（0〜1） */
+      angleJitterHalfSpan: 0.5,
+      thickProbability: 0.25,
+      widthThickPx: 2.2,
+      widthThinPx: 1.1,
+    },
+    /** 破片ドット（生成時） */
+    debris: {
+      speedBasePxPerSec: 40,
+      /** {@link tuning.hitExplosion.sparkSpeedMax} に掛けて速度上限を作る係数 */
+      speedSparkMaxFactor: 0.55,
+      sizeMinPx: 1.2,
+      sizeJitterPx: 2.4,
+    },
+    /** 太い主軸レイ（スターバースト、生成時） */
+    primaryRays: {
+      count: 10,
+      angleJitterRad: 0.12,
+      lenMinPx: 28,
+      lenMaxPx: 38,
+      widthWidePx: 3,
+      widthNarrowPx: 2,
+    },
+    /** 壁接触爆発の Canvas 描画（グラデーション・減衰タイミング） */
+    draw: {
+      masterFadeCutoff: 0.02,
+
+      glowRadiusEaseMin: 0.35,
+      glowRadiusEaseMax: 0.85,
+      glowCenterAlpha: 0.22,
+      glowMidStop: 0.35,
+      glowMidAlpha: 0.08,
+
+      flashPhaseMs: 95,
+      coreRadiusBasePx: 3,
+      coreRadiusFlashScalePx: 42,
+      coreRadiusExponent: 1.8,
+      coreAlphaCenter: 0.98,
+      coreStop1: 0.2,
+      coreAlpha1: 0.55,
+      coreStop2: 0.55,
+      coreAlpha2: 0.12,
+
+      ringInnerMinPx: 6,
+      ringWaveDurationFactor: 0.72,
+      ringAlphaExponent: 1.15,
+      ringStrokeAlphaScale: 0.92,
+      ringStrokeWidthPrimaryPx: 3,
+      ringStrokeWidthSecondaryPx: 2,
+
+      primaryRayExpandSec: 0.14,
+      primaryRayFadeSec: 0.32,
+      primaryRayStrokeAlphaScale: 0.95,
+      primaryRayTailPull: 0.08,
+
+      crossPhaseMs: 70,
+      crossAlphaExponent: 2,
+      crossAlphaScale: 0.75,
+      crossLenBasePx: 8,
+      crossLenFlashScalePx: 52,
+      crossLineWidthPx: 2.5,
+
+      streakStrokeAlphaScale: 0.88,
+      streakFadeSec: 0.45,
+
+      debrisFillAlphaScale: 0.9,
+      debrisFadeSec: 0.5,
+      debrisSizeShrinkWithT: 0.35,
+    },
   },
 } as const;
