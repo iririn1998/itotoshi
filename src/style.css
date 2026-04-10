@@ -227,12 +227,19 @@ canvas {
 }
 
 .modal-card.modal-card--game-over {
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
   background: rgba(10, 10, 14, 0.72);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
   box-shadow:
     0 12px 40px rgba(0, 0, 0, 0.55),
     0 0 0 1px rgba(255, 255, 255, 0.12) inset;
+}
+
+.modal-card.modal-card--game-over .modal-title {
+  margin-bottom: 0;
 }
 
 #game-over-screen.game-over-fade-enter .modal-card.modal-card--game-over {
