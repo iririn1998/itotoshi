@@ -1,8 +1,76 @@
-import { Actor, CollisionType, Color, GraphicsGroup, Rectangle, vec } from "excalibur";
+import { Actor, Canvas, CollisionType, GraphicsGroup, vec, type Vector } from "excalibur";
 import { tuning } from "../game/tuning";
 
 /** ワールド座標の軸平行矩形当たり */
 export type WallHitBox = { left: number; top: number; right: number; bottom: number };
+
+/** 隙間に面する短辺にハイライトを入れる（上段柱＝下辺、下段柱＝上辺） */
+type GapFacingEdge = "bottom" | "top";
+
+function createPillarGraphic(width: number, height: number, gapFacing: GapFacingEdge): Canvas {
+  const w = Math.max(1, Math.ceil(width));
+  const h = Math.max(1, Math.ceil(height));
+
+  return new Canvas({
+    width: w,
+    height: h,
+    cache: true,
+    draw: (c) => {
+      c.clearRect(0, 0, w, h);
+
+      const body = c.createLinearGradient(0, 0, w, 0);
+      body.addColorStop(0, "rgba(255,255,255,0.2)");
+      body.addColorStop(0.18, "rgba(255,255,255,1)");
+      body.addColorStop(0.4, "rgba(255,255,255,0.9)");
+      body.addColorStop(0.68, "rgba(255,255,255,0.45)");
+      body.addColorStop(1, "rgba(255,255,255,0.12)");
+      c.fillStyle = body;
+      c.fillRect(0, 0, w, h);
+
+      c.save();
+      c.globalCompositeOperation = "lighter";
+      const sheen = c.createLinearGradient(0, 0, 0, h);
+      sheen.addColorStop(0, "rgba(255,255,255,0.32)");
+      sheen.addColorStop(0.42, "rgba(255,255,255,0)");
+      sheen.addColorStop(1, "rgba(255,255,255,0.12)");
+      c.fillStyle = sheen;
+      c.fillRect(0, 0, w, h);
+      c.restore();
+
+      c.fillStyle = "rgba(255,255,255,0.88)";
+      c.fillRect(0, 0, 1, h);
+      if (w >= 2) {
+        c.fillStyle = "rgba(255,255,255,0.22)";
+        c.fillRect(1, 0, 1, h);
+      }
+
+      if (w >= 5) {
+        c.strokeStyle = "rgba(255,255,255,0.16)";
+        c.lineWidth = 1;
+        const xMid = Math.floor(w * 0.52) + 0.5;
+        c.beginPath();
+        c.moveTo(xMid, 0);
+        c.lineTo(xMid, h);
+        c.stroke();
+      }
+
+      c.strokeStyle = "rgba(255,255,255,0.42)";
+      c.lineWidth = 1;
+      c.strokeRect(0.5, 0.5, w - 1, h - 1);
+
+      c.strokeStyle = "rgba(255,255,255,0.58)";
+      c.beginPath();
+      if (gapFacing === "bottom") {
+        c.moveTo(0, h - 0.5);
+        c.lineTo(w, h - 0.5);
+      } else {
+        c.moveTo(0, 0.5);
+        c.lineTo(w, 0.5);
+      }
+      c.stroke();
+    },
+  });
+}
 
 /**
  * 上下の矩形のあいだに隙間を空けたゲート。糸（軌跡）がその隙間を通る想定。
@@ -46,23 +114,23 @@ export class ThreadHoleGateActor extends Actor {
     const bottomY = this.bottomY;
     const bottomHeight = this.bottomHeight;
 
-    const topRect = new Rectangle({
-      width: th.wallThicknessX,
-      height: topHeight,
-      color: Color.White,
-    });
-    const bottomRect = new Rectangle({
-      width: th.wallThicknessX,
-      height: bottomHeight,
-      color: Color.White,
-    });
+    const members: { offset: Vector; graphic: Canvas }[] = [];
+    if (topHeight > 0) {
+      members.push({
+        offset: vec(0, 0),
+        graphic: createPillarGraphic(th.wallThicknessX, topHeight, "bottom"),
+      });
+    }
+    if (bottomHeight > 0) {
+      members.push({
+        offset: vec(0, bottomY),
+        graphic: createPillarGraphic(th.wallThicknessX, bottomHeight, "top"),
+      });
+    }
 
     const group = new GraphicsGroup({
       useAnchor: false,
-      members: [
-        { offset: vec(0, 0), graphic: topRect },
-        { offset: vec(0, bottomY), graphic: bottomRect },
-      ],
+      members,
     });
 
     this.graphics.use(group);
@@ -71,24 +139,27 @@ export class ThreadHoleGateActor extends Actor {
   };
 
   /**
-   * 描画と同じ上下壁の AABB（ワールド座標）。`inflation` で法線方向に膨らませて線の太さ分を近似する。
+   * 上下壁の AABB（ワールド座標）。柱の見た目より {@link tuning.threadHoles.hitVisualInsetPx} だけ内側を基準にし、
+   * `inflation` でさらに膨らませて線の太さ分を近似する。
    */
   getWallHitBoxes = (inflation: number): [WallHitBox, WallHitBox] => {
+    const th = tuning.threadHoles;
     const x0 = this.pos.x;
     const x1 = x0 + this.wallThicknessX;
     const pad = inflation;
+    const inX = th.hitVisualInsetPx;
 
     const top = this.hitBoxTop;
-    top.left = x0 - pad;
-    top.top = 0 - pad;
-    top.right = x1 + pad;
-    top.bottom = this.topHeight + pad;
+    top.left = x0 + inX - pad;
+    top.top = 0 + inX - pad;
+    top.right = x1 - inX + pad;
+    top.bottom = this.topHeight - inX + pad;
 
     const bottom = this.hitBoxBottom;
-    bottom.left = x0 - pad;
-    bottom.top = this.bottomY - pad;
-    bottom.right = x1 + pad;
-    bottom.bottom = this.bottomY + this.bottomHeight + pad;
+    bottom.left = x0 + inX - pad;
+    bottom.top = this.bottomY + inX - pad;
+    bottom.right = x1 - inX + pad;
+    bottom.bottom = this.bottomY + this.bottomHeight - inX + pad;
 
     return [top, bottom];
   };
