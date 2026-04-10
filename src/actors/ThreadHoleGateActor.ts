@@ -7,7 +7,7 @@ export type WallHitBox = { left: number; top: number; right: number; bottom: num
 /** 隙間に面する短辺にハイライトを入れる（上段柱＝下辺、下段柱＝上辺） */
 type GapFacingEdge = "bottom" | "top";
 
-function createPillarGraphic(width: number, height: number, gapFacing: GapFacingEdge): Canvas {
+const createPillarGraphic = (width: number, height: number, gapFacing: GapFacingEdge): Canvas => {
   const w = Math.max(1, Math.ceil(width));
   const h = Math.max(1, Math.ceil(height));
 
@@ -70,7 +70,7 @@ function createPillarGraphic(width: number, height: number, gapFacing: GapFacing
       c.stroke();
     },
   });
-}
+};
 
 /**
  * 上下の矩形のあいだに隙間を空けたゲート。糸（軌跡）がその隙間を通る想定。

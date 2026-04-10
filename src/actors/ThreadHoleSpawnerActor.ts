@@ -6,7 +6,7 @@ import { tuning } from "../game/tuning";
 const th = tuning.threadHoles;
 
 /** カメラ viewport の縦範囲内で、隙間全体が収まるように隙間中心 Y を一様ランダムに選ぶ */
-function randomGapCenterWorldYInViewport(viewport: { top: number; bottom: number }): number {
+const randomGapCenterWorldYInViewport = (viewport: { top: number; bottom: number }): number => {
   const half = th.gapHeightPx / 2;
   const minC = viewport.top + half;
   const maxC = viewport.bottom - half;
@@ -14,7 +14,7 @@ function randomGapCenterWorldYInViewport(viewport: { top: number; bottom: number
     return (minC + maxC) / 2;
   }
   return minC + Math.random() * (maxC - minC);
-}
+};
 
 /**
  * 一定時間ごとに {@link ThreadHoleGateActor} を、カメラビューポートの右外に生成し、
