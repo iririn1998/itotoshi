@@ -6,7 +6,6 @@ import { LineActor } from "./LineActor";
 import { ThreadHoleSpawnerActor } from "./ThreadHoleSpawnerActor";
 
 const th = tuning.threadHoles;
-const vh = tuning.gameViewport.height;
 /** 画面上下端の帯状 AABB を Liang–Barsky で切るときの十分大きな座標幅 */
 const VIEWPORT_BORDER_EXTENT = 1e7;
 
@@ -33,10 +32,14 @@ export class ThreadWallCollisionActor extends Actor {
     this.onHit = onHit;
   }
 
-  onPreUpdate = (_engine: Engine): void => {
+  onPreUpdate = (engine: Engine): void => {
     if (this.session.isGameOver) {
       return;
     }
+
+    const v = engine.currentScene.camera.viewport;
+    const vTop = v.top;
+    const vBottom = v.bottom;
 
     const pad = this.line.lineWidth / 2 + th.hitInflationPx;
     const pts = this.line.points;
@@ -63,9 +66,9 @@ export class ThreadWallCollisionActor extends Actor {
       p2.x,
       p2.y,
       xMin,
-      -VIEWPORT_BORDER_EXTENT,
+      vTop - VIEWPORT_BORDER_EXTENT,
       xMax,
-      pad,
+      vTop + pad,
     );
     const tTop = segmentAabbEntryT(topBorderClip);
     if (tTop !== null) {
@@ -79,9 +82,9 @@ export class ThreadWallCollisionActor extends Actor {
       p2.x,
       p2.y,
       xMin,
-      vh - pad,
+      vBottom - pad,
       xMax,
-      VIEWPORT_BORDER_EXTENT,
+      vBottom + VIEWPORT_BORDER_EXTENT,
     );
     const tBottom = segmentAabbEntryT(bottomBorderClip);
     if (tBottom !== null) {

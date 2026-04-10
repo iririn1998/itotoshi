@@ -12,6 +12,8 @@ export class ThreadHoleGateActor extends Actor {
   passScored = false;
 
   private readonly gapCenterWorldY: number;
+  /** ワールド Y での画面の縦幅（0〜この値が画面に対応。通常はカメラ viewport の高さ） */
+  private readonly viewportWorldHeight: number;
   private wallThicknessX = 0;
   private topHeight = 0;
   private bottomY = 0;
@@ -19,14 +21,18 @@ export class ThreadHoleGateActor extends Actor {
   private readonly hitBoxTop: WallHitBox = { left: 0, top: 0, right: 0, bottom: 0 };
   private readonly hitBoxBottom: WallHitBox = { left: 0, top: 0, right: 0, bottom: 0 };
 
-  constructor(gapCenterWorldY: number = tuning.threadHoles.gapCenterWorldY) {
+  constructor(
+    gapCenterWorldY: number = tuning.threadHoles.gapCenterWorldY,
+    viewportWorldHeight: number = tuning.gameViewport.height,
+  ) {
     super();
     this.gapCenterWorldY = gapCenterWorldY;
+    this.viewportWorldHeight = viewportWorldHeight;
   }
 
   onInitialize = (): void => {
     const th = tuning.threadHoles;
-    const vh = tuning.gameViewport.height;
+    const vh = this.viewportWorldHeight;
     const gapHalf = th.gapHeightPx / 2;
     const gapTop = this.gapCenterWorldY - gapHalf;
     const gapBottom = this.gapCenterWorldY + gapHalf;
