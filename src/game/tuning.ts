@@ -75,11 +75,16 @@ export const tuning = {
      */
     spawnBeyondViewportRightPx: 48,
     /** 壁の太さ（ワールド X 方向の幅） */
-    wallThicknessX: 14,
+    wallThicknessX: 8,
     /** 上下の壁の間の隙間の高さ（ワールド Y、px） */
-    gapHeightPx: 112,
-    /** 隙間の中心 Y。通常は {@link tuning.world.baselineY} と揃えて先端の基準線付近に穴を開ける */
+    gapHeightPx: 64,
+    /** 隙間の中心 Y の基準。通常は {@link tuning.world.baselineY} と揃える */
     gapCenterWorldY: world.baselineY,
+    /**
+     * 各ゲート生成時に基準 Y へ加えるランダムオフセットの最大絶対値（px）。
+     * 実際の中心は画面内に隙間全体が収まるようクランプされる。
+     */
+    gapCenterRandomOffsetMaxPx: 96,
     /** 画面外判定でビューポート左端からさらに左へ足す余白（ワールド px） */
     cullMarginWorldPx: 64,
     /**

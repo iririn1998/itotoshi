@@ -11,6 +11,7 @@ export class ThreadHoleGateActor extends Actor {
   /** このゲートで隙間通過スコアを既に加算したか */
   passScored = false;
 
+  private readonly gapCenterWorldY: number;
   private wallThicknessX = 0;
   private topHeight = 0;
   private bottomY = 0;
@@ -18,12 +19,17 @@ export class ThreadHoleGateActor extends Actor {
   private readonly hitBoxTop: WallHitBox = { left: 0, top: 0, right: 0, bottom: 0 };
   private readonly hitBoxBottom: WallHitBox = { left: 0, top: 0, right: 0, bottom: 0 };
 
+  constructor(gapCenterWorldY: number = tuning.threadHoles.gapCenterWorldY) {
+    super();
+    this.gapCenterWorldY = gapCenterWorldY;
+  }
+
   onInitialize = (): void => {
     const th = tuning.threadHoles;
     const vh = tuning.gameViewport.height;
     const gapHalf = th.gapHeightPx / 2;
-    const gapTop = th.gapCenterWorldY - gapHalf;
-    const gapBottom = th.gapCenterWorldY + gapHalf;
+    const gapTop = this.gapCenterWorldY - gapHalf;
+    const gapBottom = this.gapCenterWorldY + gapHalf;
 
     this.wallThicknessX = th.wallThicknessX;
     this.topHeight = Math.max(0, gapTop);
