@@ -1,6 +1,6 @@
 import type { Engine } from "excalibur";
-import type { GameplayScene } from "../game/scenes/GameplayScene";
 import { GameScene } from "../game/sceneKeys";
+import type { GameplayScene } from "../game/scenes/GameplayScene";
 
 const requireElement = <T extends HTMLElement>(id: string): T => {
   const el = document.getElementById(id);
@@ -20,6 +20,10 @@ const focusElement = (el: HTMLElement): void => {
     el.focus();
   });
 };
+
+const GAME_OVER_MODAL_DELAY_MS = 500;
+/** `style.css` のゲームオーバーモーダル transition 時間と揃える */
+const GAME_OVER_FADE_MS = 500;
 
 /**
  * index.html のタイトル／ランキング／ゲームオーバー DOM と Excalibur シーン遷移を結ぶ
@@ -82,12 +86,35 @@ export const bindShellUi = (game: Engine, gameplayScene: GameplayScene): void =>
     }
   };
 
+  let gameOverShowTimeout: ReturnType<typeof setTimeout> | null = null;
+  let gameOverFadeEndTimeout: ReturnType<typeof setTimeout> | null = null;
+
+  const clearGameOverShowTimeout = (): void => {
+    if (gameOverShowTimeout !== null) {
+      clearTimeout(gameOverShowTimeout);
+      gameOverShowTimeout = null;
+    }
+  };
+
+  const clearGameOverFadeEndTimeout = (): void => {
+    if (gameOverFadeEndTimeout !== null) {
+      clearTimeout(gameOverFadeEndTimeout);
+      gameOverFadeEndTimeout = null;
+    }
+  };
+
   const hideGameOver = (): void => {
+    clearGameOverShowTimeout();
+    clearGameOverFadeEndTimeout();
+    gameOverScreen.classList.remove("game-over-fade-enter", "game-over-fade-enter-active");
     setOverlayVisible(gameOverScreen, false);
     restoreShellInertAfterGameOver();
   };
 
   const showGameOver = (): void => {
+    clearGameOverFadeEndTimeout();
+    gameOverScreen.classList.remove("game-over-fade-enter-active");
+    gameOverScreen.classList.add("game-over-fade-enter");
     setOverlayVisible(gameOverScreen, true);
     for (const child of appShell.children) {
       if (child === gameOverScreen) {
@@ -96,10 +123,30 @@ export const bindShellUi = (game: Engine, gameplayScene: GameplayScene): void =>
       child.setAttribute("inert", "");
       child.setAttribute("aria-hidden", "true");
     }
-    focusElement(gameOverDialog);
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        gameOverScreen.classList.add("game-over-fade-enter-active");
+      });
+    });
+    const fadeEndMs = window.matchMedia("(prefers-reduced-motion: reduce)").matches
+      ? 0
+      : GAME_OVER_FADE_MS;
+    gameOverFadeEndTimeout = setTimeout(() => {
+      gameOverFadeEndTimeout = null;
+      gameOverScreen.classList.remove("game-over-fade-enter", "game-over-fade-enter-active");
+      focusElement(gameOverDialog);
+    }, fadeEndMs);
   };
 
-  gameplayScene.registerGameOverUi(showGameOver);
+  const scheduleGameOverUi = (): void => {
+    clearGameOverShowTimeout();
+    gameOverShowTimeout = setTimeout(() => {
+      gameOverShowTimeout = null;
+      showGameOver();
+    }, GAME_OVER_MODAL_DELAY_MS);
+  };
+
+  gameplayScene.registerGameOverUi(scheduleGameOverUi);
 
   btnRanking.addEventListener("click", () => {
     setRankingModalOpen(true);

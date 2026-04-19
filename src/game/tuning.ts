@@ -75,10 +75,12 @@ export const tuning = {
      */
     spawnBeyondViewportRightPx: 48,
     /** 壁の太さ（ワールド X 方向の幅） */
-    wallThicknessX: 14,
+    wallThicknessX: 8,
     /** 上下の壁の間の隙間の高さ（ワールド Y、px） */
-    gapHeightPx: 112,
-    /** 隙間の中心 Y。通常は {@link tuning.world.baselineY} と揃えて先端の基準線付近に穴を開ける */
+    gapHeightPx: 64,
+    /**
+     * 隙間の中心 Y の既定（コンストラクタ省略時）。スポナー生成時は viewport 縦範囲内でランダム。
+     */
     gapCenterWorldY: world.baselineY,
     /** 画面外判定でビューポート左端からさらに左へ足す余白（ワールド px） */
     cullMarginWorldPx: 64,
@@ -86,6 +88,10 @@ export const tuning = {
      * 当たり判定で壁 AABB を膨らませる量（px）。{@link tuning.lineActor.lineWidth} の半分に加算する。
      */
     hitInflationPx: 2,
+    /**
+     * 柱の見た目の矩形から当たり判定を内側に寄せる量（px）。各辺からこの分だけ狭める。
+     */
+    hitVisualInsetPx: 2,
     /** 隙間を一度通過したときに加算するスコア */
     scorePerGapPass: 1,
   },

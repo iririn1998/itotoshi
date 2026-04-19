@@ -5,6 +5,17 @@ import { tuning } from "../game/tuning";
 
 const th = tuning.threadHoles;
 
+/** カメラ viewport の縦範囲内で、隙間全体が収まるように隙間中心 Y を一様ランダムに選ぶ */
+const randomGapCenterWorldYInViewport = (viewport: { top: number; bottom: number }): number => {
+  const half = th.gapHeightPx / 2;
+  const minC = viewport.top + half;
+  const maxC = viewport.bottom - half;
+  if (maxC <= minC) {
+    return (minC + maxC) / 2;
+  }
+  return minC + Math.random() * (maxC - minC);
+};
+
 /**
  * 一定時間ごとに {@link ThreadHoleGateActor} を、カメラビューポートの右外に生成し、
  * ビューポート左外へ出たゲートを削除する。
@@ -47,7 +58,11 @@ export class ThreadHoleSpawnerActor extends Actor {
       this.spawnAccumMs -= th.spawnIntervalMs;
       const spawnX = baseSpawnX + spawnIndex * spawnSpacingX;
       spawnIndex += 1;
-      const gate = new ThreadHoleGateActor();
+      const vp = scene.camera.viewport;
+      const gate = new ThreadHoleGateActor(randomGapCenterWorldYInViewport(vp), {
+        top: vp.top,
+        bottom: vp.bottom,
+      });
       gate.pos.setTo(spawnX, 0);
       gate.anchor.setTo(0, 0);
       scene.add(gate);
