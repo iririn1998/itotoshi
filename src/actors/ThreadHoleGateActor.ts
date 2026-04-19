@@ -4,6 +4,9 @@ import { tuning } from "../game/tuning";
 /** ワールド座標の軸平行矩形当たり */
 export type WallHitBox = { left: number; top: number; right: number; bottom: number };
 
+/** カメラ viewport の上下端（ワールド Y）。{@link ThreadHoleGateActor} の柱・当たりはこの範囲に合わせる */
+export type GateViewportWorldY = { top: number; bottom: number };
+
 /** 隙間に面する短辺にハイライトを入れる（上段柱＝下辺、下段柱＝上辺） */
 type GapFacingEdge = "bottom" | "top";
 
@@ -80,51 +83,56 @@ export class ThreadHoleGateActor extends Actor {
   passScored = false;
 
   private readonly gapCenterWorldY: number;
-  /** ワールド Y での画面の縦幅（0〜この値が画面に対応。通常はカメラ viewport の高さ） */
-  private readonly viewportWorldHeight: number;
+  private readonly viewportWorldTop: number;
+  private readonly viewportWorldBottom: number;
   private wallThicknessX = 0;
-  private topHeight = 0;
-  private bottomY = 0;
-  private bottomHeight = 0;
   private readonly hitBoxTop: WallHitBox = { left: 0, top: 0, right: 0, bottom: 0 };
   private readonly hitBoxBottom: WallHitBox = { left: 0, top: 0, right: 0, bottom: 0 };
 
   constructor(
     gapCenterWorldY: number = tuning.threadHoles.gapCenterWorldY,
-    viewportWorldHeight: number = tuning.gameViewport.height,
+    viewportWorldOrHeight: GateViewportWorldY | number = {
+      top: 0,
+      bottom: tuning.gameViewport.height,
+    },
   ) {
     super();
     this.gapCenterWorldY = gapCenterWorldY;
-    this.viewportWorldHeight = viewportWorldHeight;
+    if (typeof viewportWorldOrHeight === "number") {
+      this.viewportWorldTop = 0;
+      this.viewportWorldBottom = viewportWorldOrHeight;
+    } else {
+      this.viewportWorldTop = viewportWorldOrHeight.top;
+      this.viewportWorldBottom = viewportWorldOrHeight.bottom;
+    }
   }
 
   onInitialize = (): void => {
     const th = tuning.threadHoles;
-    const vh = this.viewportWorldHeight;
     const gapHalf = th.gapHeightPx / 2;
-    const gapTop = this.gapCenterWorldY - gapHalf;
-    const gapBottom = this.gapCenterWorldY + gapHalf;
+    const gapTopWorld = this.gapCenterWorldY - gapHalf;
+    const gapBottomWorld = this.gapCenterWorldY + gapHalf;
+    const vTop = this.viewportWorldTop;
+    const vBottom = this.viewportWorldBottom;
 
     this.wallThicknessX = th.wallThicknessX;
-    this.topHeight = Math.max(0, gapTop);
-    this.bottomY = gapBottom;
-    this.bottomHeight = Math.max(0, vh - gapBottom);
 
-    const topHeight = this.topHeight;
-    const bottomY = this.bottomY;
-    const bottomHeight = this.bottomHeight;
+    const topPillarHeight = Math.max(0, gapTopWorld - vTop);
+    const topPillarOffsetLocal = vTop - this.pos.y;
+    const bottomPillarHeight = Math.max(0, vBottom - gapBottomWorld);
+    const bottomPillarOffsetLocal = gapBottomWorld - this.pos.y;
 
     const members: { offset: Vector; graphic: Canvas }[] = [];
-    if (topHeight > 0) {
+    if (topPillarHeight > 0) {
       members.push({
-        offset: vec(0, 0),
-        graphic: createPillarGraphic(th.wallThicknessX, topHeight, "bottom"),
+        offset: vec(0, topPillarOffsetLocal),
+        graphic: createPillarGraphic(th.wallThicknessX, topPillarHeight, "bottom"),
       });
     }
-    if (bottomHeight > 0) {
+    if (bottomPillarHeight > 0) {
       members.push({
-        offset: vec(0, bottomY),
-        graphic: createPillarGraphic(th.wallThicknessX, bottomHeight, "top"),
+        offset: vec(0, bottomPillarOffsetLocal),
+        graphic: createPillarGraphic(th.wallThicknessX, bottomPillarHeight, "top"),
       });
     }
 
@@ -144,6 +152,12 @@ export class ThreadHoleGateActor extends Actor {
    */
   getWallHitBoxes = (inflation: number): [WallHitBox, WallHitBox] => {
     const th = tuning.threadHoles;
+    const gapHalf = th.gapHeightPx / 2;
+    const gapTopWorld = this.gapCenterWorldY - gapHalf;
+    const gapBottomWorld = this.gapCenterWorldY + gapHalf;
+    const vTop = this.viewportWorldTop;
+    const vBottom = this.viewportWorldBottom;
+
     const x0 = this.pos.x;
     const x1 = x0 + this.wallThicknessX;
     const pad = inflation;
@@ -151,15 +165,15 @@ export class ThreadHoleGateActor extends Actor {
 
     const top = this.hitBoxTop;
     top.left = x0 + inX - pad;
-    top.top = 0 + inX - pad;
+    top.top = vTop + inX - pad;
     top.right = x1 - inX + pad;
-    top.bottom = this.topHeight - inX + pad;
+    top.bottom = gapTopWorld - inX + pad;
 
     const bottom = this.hitBoxBottom;
     bottom.left = x0 + inX - pad;
-    bottom.top = this.bottomY + inX - pad;
+    bottom.top = gapBottomWorld + inX - pad;
     bottom.right = x1 - inX + pad;
-    bottom.bottom = this.bottomY + this.bottomHeight - inX + pad;
+    bottom.bottom = vBottom - inX + pad;
 
     return [top, bottom];
   };
@@ -167,7 +181,8 @@ export class ThreadHoleGateActor extends Actor {
   /**
    * 上下壁に挟まれた隙間の Y 範囲（ワールド座標、上端・下端。壁に接する境界を含む）。
    */
-  getGapYRange(): { minY: number; maxY: number } {
-    return { minY: this.topHeight, maxY: this.bottomY };
-  }
+  getGapYRange = (): { minY: number; maxY: number } => {
+    const half = tuning.threadHoles.gapHeightPx / 2;
+    return { minY: this.gapCenterWorldY - half, maxY: this.gapCenterWorldY + half };
+  };
 }
