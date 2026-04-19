@@ -59,8 +59,10 @@ export class ThreadHoleSpawnerActor extends Actor {
       const spawnX = baseSpawnX + spawnIndex * spawnSpacingX;
       spawnIndex += 1;
       const vp = scene.camera.viewport;
-      const vh = vp.height;
-      const gate = new ThreadHoleGateActor(randomGapCenterWorldYInViewport(vp), vh);
+      const gate = new ThreadHoleGateActor(randomGapCenterWorldYInViewport(vp), {
+        top: vp.top,
+        bottom: vp.bottom,
+      });
       gate.pos.setTo(spawnX, 0);
       gate.anchor.setTo(0, 0);
       scene.add(gate);

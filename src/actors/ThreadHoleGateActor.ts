@@ -91,20 +91,15 @@ export class ThreadHoleGateActor extends Actor {
 
   constructor(
     gapCenterWorldY: number = tuning.threadHoles.gapCenterWorldY,
-    viewportWorldOrHeight: GateViewportWorldY | number = {
+    viewportWorld: GateViewportWorldY = {
       top: 0,
       bottom: tuning.gameViewport.height,
     },
   ) {
     super();
     this.gapCenterWorldY = gapCenterWorldY;
-    if (typeof viewportWorldOrHeight === "number") {
-      this.viewportWorldTop = 0;
-      this.viewportWorldBottom = viewportWorldOrHeight;
-    } else {
-      this.viewportWorldTop = viewportWorldOrHeight.top;
-      this.viewportWorldBottom = viewportWorldOrHeight.bottom;
-    }
+    this.viewportWorldTop = viewportWorld.top;
+    this.viewportWorldBottom = viewportWorld.bottom;
   }
 
   onInitialize = (): void => {
