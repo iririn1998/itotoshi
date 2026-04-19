@@ -4,22 +4,19 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "vite",
-    "build": "tsc && vite build",
-    "preview": "vite preview",
-    "lint": "oxlint",
-    "format": "oxfmt --write .",
-    "format:check": "oxfmt --check"
-  },
-  "dependencies": {
-    "excalibur": "^0.32.0"
+    "dev": "pnpm --filter @itotoshi/game dev",
+    "dev:game": "pnpm --filter @itotoshi/game dev",
+    "dev:backend": "pnpm --filter @itotoshi/backend dev",
+    "build": "pnpm -r run build",
+    "preview": "pnpm --filter @itotoshi/game preview",
+    "lint": "pnpm -r run lint",
+    "format": "pnpm -r run format",
+    "format:check": "pnpm -r run format:check"
   },
   "devDependencies": {
     "lefthook": "^2.1.4",
     "oxfmt": "^0.41.0",
-    "oxlint": "^1.56.0",
-    "typescript": "~5.9.3",
-    "vite": "^8.0.1"
+    "oxlint": "^1.56.0"
   },
   "packageManager": "pnpm@10.24.0+sha512.01ff8ae71b4419903b65c60fb2dc9d34cf8bb6e06d03bde112ef38f7a34d6904c424ba66bea5cdcf12890230bf39f9580473140ed9c946fef328b6e5238a345a"
 }
