@@ -4,18 +4,21 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "tsx watch src/index.ts",
-    "build": "tsc",
-    "start": "node dist/index.js",
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy",
+    "build": "tsc --noEmit",
     "lint": "oxlint",
     "format": "oxfmt --write .",
     "format:check": "oxfmt --check ."
   },
+  "dependencies": {
+    "hono": "^4.12.18"
+  },
   "devDependencies": {
-    "@types/node": "^22.15.3",
+    "@cloudflare/workers-types": "^4.20260507.1",
     "oxfmt": "^0.41.0",
     "oxlint": "^1.56.0",
-    "tsx": "^4.19.4",
-    "typescript": "~5.9.3"
+    "typescript": "~5.9.3",
+    "wrangler": "^4.90.0"
   }
 }
