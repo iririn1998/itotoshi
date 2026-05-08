@@ -1,5 +1,7 @@
 import { Hono } from "hono";
 
+import { createApiErrorResponse } from "./rankings/contract";
+
 const app = new Hono();
 
 const healthResponse = {
@@ -10,6 +12,6 @@ const healthResponse = {
 app.get("/", (c) => c.json(healthResponse));
 app.get("/health", (c) => c.json(healthResponse));
 
-app.notFound((c) => c.json({ error: "Not Found" }, 404));
+app.notFound((c) => c.json(createApiErrorResponse("NOT_FOUND", "Not Found"), 404));
 
 export default app;
