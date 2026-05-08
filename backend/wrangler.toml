@@ -2,3 +2,10 @@ name = "itotoshi-backend"
 main = "src/index.ts"
 compatibility_date = "2026-05-07"
 workers_dev = true
+
+# Cloudflare D1 database binding.
+[[d1_databases]]
+binding = "DB"
+database_name = "itotoshi-rankings"
+database_id = "ced9247f-077a-41ae-8dc4-17e798af130b"
+migrations_dir = "migrations"
