@@ -3,6 +3,11 @@ main = "src/index.ts"
 compatibility_date = "2026-05-07"
 workers_dev = true
 
+[vars]
+# Comma-separated browser origins allowed to call the ranking API when the game
+# uses VITE_RANKING_API_BASE to point at this Worker.
+RANKING_ALLOWED_ORIGINS = "https://itotoshi-game.pages.dev"
+
 # Cloudflare D1 database binding.
 [[d1_databases]]
 binding = "DB"

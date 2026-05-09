@@ -1,3 +1,5 @@
+import type { BackendEnv } from "../types";
+
 /**
  * D1 の rankings テーブルから取得する 1 行分のデータ。
  */
@@ -26,8 +28,4 @@ export type ValidRankingInput = {
 /**
  * ランキング API が利用する Workers Binding。
  */
-export type RankingsEnv = {
-  Bindings: {
-    DB: D1Database;
-  };
-};
+export type RankingsEnv = BackendEnv;
