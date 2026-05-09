@@ -1,0 +1,3 @@
+name = "itotoshi-game"
+pages_build_output_dir = "game/dist"
+compatibility_date = "2026-05-07"
