@@ -47,6 +47,28 @@
           tabindex="-1"
         >
           <h2 id="game-over-heading" class="modal-title">ゲームオーバー</h2>
+          <p class="game-over-score">SCORE : <span id="game-over-score-value">0</span></p>
+          <form id="ranking-submit-form" class="ranking-submit-form">
+            <label class="ranking-submit-label" for="ranking-display-name">表示名</label>
+            <input
+              id="ranking-display-name"
+              class="ranking-submit-input"
+              name="displayName"
+              type="text"
+              maxlength="24"
+              autocomplete="name"
+              required
+            />
+            <button type="submit" id="btn-ranking-submit" class="btn btn-primary">
+              ランキングに登録
+            </button>
+            <p
+              id="ranking-submit-message"
+              class="ranking-submit-message"
+              role="status"
+              aria-live="polite"
+            ></p>
+          </form>
           <div class="game-over-actions">
             <button type="button" id="btn-game-over-retry" class="btn btn-primary">リトライ</button>
             <button type="button" id="btn-game-over-home" class="btn btn-secondary">
@@ -62,15 +84,25 @@
         aria-hidden="true"
       >
         <div
-          class="modal-card"
+          class="modal-card modal-card--ranking"
           role="dialog"
           aria-modal="true"
           aria-labelledby="ranking-heading"
           tabindex="-1"
         >
           <h2 id="ranking-heading" class="modal-title">ランキング</h2>
-          <p class="modal-body">記録の表示は今後追加予定です。</p>
-          <button type="button" id="btn-ranking-back" class="btn btn-secondary">戻る</button>
+          <p id="ranking-status" class="ranking-status" role="status" aria-live="polite" hidden>
+            読み込み中
+          </p>
+          <ol id="ranking-list" class="ranking-list" aria-label="ランキング一覧"></ol>
+          <p id="ranking-empty" class="modal-body ranking-empty" hidden>まだ記録がありません。</p>
+          <p id="ranking-error" class="modal-body ranking-error" role="alert" hidden></p>
+          <div class="ranking-actions">
+            <button type="button" id="btn-ranking-reload" class="btn btn-secondary">
+              再読み込み
+            </button>
+            <button type="button" id="btn-ranking-back" class="btn btn-secondary">戻る</button>
+          </div>
         </div>
       </div>
     </div>

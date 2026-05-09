@@ -1,4 +1,10 @@
 import type { Engine } from "excalibur";
+import {
+  createRanking,
+  DISPLAY_NAME_MAX_LENGTH,
+  getRankings,
+  type RankingEntry,
+} from "../api/rankingApi";
 import { GameScene } from "../game/sceneKeys";
 import type { GameplayScene } from "../game/scenes/GameplayScene";
 
@@ -21,9 +27,20 @@ const focusElement = (el: HTMLElement): void => {
   });
 };
 
+const setHidden = (el: HTMLElement, hidden: boolean): void => {
+  el.hidden = hidden;
+};
+
 const GAME_OVER_MODAL_DELAY_MS = 500;
 /** `style.css` のゲームオーバーモーダル transition 時間と揃える */
 const GAME_OVER_FADE_MS = 500;
+const RANKING_LIST_LIMIT = 50;
+
+type GameOverSubmissionState = {
+  readonly score: number;
+  isSubmitting: boolean;
+  submitted: boolean;
+};
 
 /**
  * index.html のタイトル／ランキング／ゲームオーバー DOM と Excalibur シーン遷移を結ぶ
@@ -42,12 +59,22 @@ export const bindShellUi = (game: Engine, gameplayScene: GameplayScene): void =>
   }
   const btnGameStart = requireElement<HTMLButtonElement>("btn-game-start");
   const btnRanking = requireElement<HTMLButtonElement>("btn-ranking");
+  const btnRankingReload = requireElement<HTMLButtonElement>("btn-ranking-reload");
   const btnRankingBack = requireElement<HTMLButtonElement>("btn-ranking-back");
   const btnGameOverRetry = requireElement<HTMLButtonElement>("btn-game-over-retry");
   const btnGameOverHome = requireElement<HTMLButtonElement>("btn-game-over-home");
   const appShell = requireElement<HTMLDivElement>("app-shell");
   const hudScore = requireElement<HTMLDivElement>("hud-score");
   const hudScoreValue = requireElement<HTMLSpanElement>("hud-score-value");
+  const rankingStatus = requireElement<HTMLParagraphElement>("ranking-status");
+  const rankingList = requireElement<HTMLOListElement>("ranking-list");
+  const rankingEmpty = requireElement<HTMLParagraphElement>("ranking-empty");
+  const rankingError = requireElement<HTMLParagraphElement>("ranking-error");
+  const gameOverScoreValue = requireElement<HTMLSpanElement>("game-over-score-value");
+  const rankingSubmitForm = requireElement<HTMLFormElement>("ranking-submit-form");
+  const rankingDisplayNameInput = requireElement<HTMLInputElement>("ranking-display-name");
+  const btnRankingSubmit = requireElement<HTMLButtonElement>("btn-ranking-submit");
+  const rankingSubmitMessage = requireElement<HTMLParagraphElement>("ranking-submit-message");
 
   const setGameplayHudVisible = (visible: boolean): void => {
     hudScore.classList.toggle("is-hidden", !visible);
@@ -55,6 +82,116 @@ export const bindShellUi = (game: Engine, gameplayScene: GameplayScene): void =>
 
   const syncHudScoreText = (value: number): void => {
     hudScoreValue.textContent = String(value);
+  };
+
+  const syncGameOverScoreText = (value: number): void => {
+    gameOverScoreValue.textContent = String(value);
+  };
+
+  const createRankingRow = (ranking: RankingEntry): HTMLLIElement => {
+    const row = document.createElement("li");
+    row.className = "ranking-row";
+
+    const rank = document.createElement("span");
+    rank.className = "ranking-rank";
+    rank.textContent = `${ranking.rank}位`;
+
+    const displayName = document.createElement("span");
+    displayName.className = "ranking-name";
+    displayName.textContent = ranking.displayName;
+
+    const score = document.createElement("span");
+    score.className = "ranking-score";
+    score.textContent = `${ranking.score}点`;
+
+    row.append(rank, displayName, score);
+    return row;
+  };
+
+  const renderRankingLoading = (): void => {
+    rankingStatus.textContent = "読み込み中";
+    setHidden(rankingStatus, false);
+    setHidden(rankingEmpty, true);
+    setHidden(rankingError, true);
+    rankingList.replaceChildren();
+  };
+
+  const renderRankingList = (rankings: RankingEntry[]): void => {
+    setHidden(rankingStatus, true);
+    setHidden(rankingError, true);
+    setHidden(rankingEmpty, rankings.length > 0);
+    rankingList.replaceChildren(...rankings.map(createRankingRow));
+  };
+
+  const renderRankingError = (message: string): void => {
+    rankingError.textContent = message;
+    setHidden(rankingStatus, true);
+    setHidden(rankingEmpty, true);
+    setHidden(rankingError, false);
+    rankingList.replaceChildren();
+  };
+
+  let rankingLoadRequestId = 0;
+  let gameOverSubmission: GameOverSubmissionState | null = null;
+
+  const loadRankings = async (): Promise<void> => {
+    const requestId = ++rankingLoadRequestId;
+    btnRankingReload.disabled = true;
+    renderRankingLoading();
+
+    try {
+      const rankings = await getRankings({ limit: RANKING_LIST_LIMIT });
+      if (requestId !== rankingLoadRequestId) {
+        return;
+      }
+      renderRankingList(rankings);
+    } catch (error) {
+      if (requestId !== rankingLoadRequestId) {
+        return;
+      }
+      console.error("Failed to load rankings", error);
+      renderRankingError("ランキングを読み込めませんでした。");
+    } finally {
+      if (requestId === rankingLoadRequestId) {
+        btnRankingReload.disabled = false;
+      }
+    }
+  };
+
+  const setRankingSubmitMessage = (
+    message: string | null,
+    status: "success" | "error" | null = null,
+  ): void => {
+    rankingSubmitMessage.textContent = message ?? "";
+    rankingSubmitMessage.classList.toggle("ranking-submit-message--success", status === "success");
+    rankingSubmitMessage.classList.toggle("ranking-submit-message--error", status === "error");
+  };
+
+  const setRankingSubmitControls = (state: "ready" | "submitting" | "submitted"): void => {
+    rankingDisplayNameInput.disabled = state !== "ready";
+    btnRankingSubmit.disabled = state !== "ready";
+    btnRankingSubmit.textContent =
+      state === "submitting" ? "送信中" : state === "submitted" ? "登録済み" : "ランキングに登録";
+  };
+
+  const prepareGameOverSubmission = (score: number): void => {
+    gameOverSubmission = {
+      score,
+      isSubmitting: false,
+      submitted: false,
+    };
+    syncGameOverScoreText(score);
+    rankingSubmitForm.reset();
+    setRankingSubmitControls("ready");
+    setRankingSubmitMessage(null);
+  };
+
+  const clearGameOverSubmission = (): void => {
+    gameOverSubmission = null;
+    rankingSubmitForm.reset();
+    syncGameOverScoreText(0);
+    setRankingSubmitControls("ready");
+    setRankingSubmitMessage(null);
   };
 
   gameplayScene.session.addScoreChangeListener((score) => {
@@ -81,6 +218,7 @@ export const bindShellUi = (game: Engine, gameplayScene: GameplayScene): void =>
     titleScreen.setAttribute("aria-hidden", open ? "true" : "false");
     if (open) {
       focusElement(rankingDialog);
+      void loadRankings();
     } else if (restoreFocus) {
       focusElement(btnRanking);
     }
@@ -106,6 +244,7 @@ export const bindShellUi = (game: Engine, gameplayScene: GameplayScene): void =>
   const hideGameOver = (): void => {
     clearGameOverShowTimeout();
     clearGameOverFadeEndTimeout();
+    clearGameOverSubmission();
     gameOverScreen.classList.remove("game-over-fade-enter", "game-over-fade-enter-active");
     setOverlayVisible(gameOverScreen, false);
     restoreShellInertAfterGameOver();
@@ -134,11 +273,15 @@ export const bindShellUi = (game: Engine, gameplayScene: GameplayScene): void =>
     gameOverFadeEndTimeout = setTimeout(() => {
       gameOverFadeEndTimeout = null;
       gameOverScreen.classList.remove("game-over-fade-enter", "game-over-fade-enter-active");
-      focusElement(gameOverDialog);
+      focusElement(rankingDisplayNameInput);
     }, fadeEndMs);
   };
 
   const scheduleGameOverUi = (): void => {
+    if (gameOverSubmission !== null) {
+      return;
+    }
+    prepareGameOverSubmission(gameplayScene.session.score);
     clearGameOverShowTimeout();
     gameOverShowTimeout = setTimeout(() => {
       gameOverShowTimeout = null;
@@ -152,8 +295,62 @@ export const bindShellUi = (game: Engine, gameplayScene: GameplayScene): void =>
     setRankingModalOpen(true);
   });
 
+  btnRankingReload.addEventListener("click", () => {
+    void loadRankings();
+  });
+
   btnRankingBack.addEventListener("click", () => {
     setRankingModalOpen(false);
+  });
+
+  rankingSubmitForm.addEventListener("submit", (event) => {
+    event.preventDefault();
+
+    const submission = gameOverSubmission;
+    if (submission === null || submission.isSubmitting || submission.submitted) {
+      return;
+    }
+
+    const displayName = rankingDisplayNameInput.value.trim();
+    if (displayName.length === 0) {
+      setRankingSubmitMessage("表示名を入力してください。", "error");
+      focusElement(rankingDisplayNameInput);
+      return;
+    }
+    if (Array.from(displayName).length > DISPLAY_NAME_MAX_LENGTH) {
+      setRankingSubmitMessage(`${DISPLAY_NAME_MAX_LENGTH}文字以内で入力してください。`, "error");
+      focusElement(rankingDisplayNameInput);
+      return;
+    }
+
+    submission.isSubmitting = true;
+    setRankingSubmitControls("submitting");
+    setRankingSubmitMessage("送信中", null);
+
+    void (async () => {
+      try {
+        const ranking = await createRanking({
+          displayName,
+          score: submission.score,
+        });
+        if (gameOverSubmission !== submission) {
+          return;
+        }
+        submission.isSubmitting = false;
+        submission.submitted = true;
+        setRankingSubmitControls("submitted");
+        setRankingSubmitMessage(`${ranking.rank}位に登録しました。`, "success");
+      } catch (error) {
+        if (gameOverSubmission !== submission) {
+          return;
+        }
+        console.error("Failed to submit ranking", error);
+        submission.isSubmitting = false;
+        setRankingSubmitControls("ready");
+        setRankingSubmitMessage("登録に失敗しました。もう一度お試しください。", "error");
+        focusElement(rankingDisplayNameInput);
+      }
+    })();
   });
 
   btnGameStart.addEventListener("click", () => {

@@ -1,15 +1,11 @@
 import { Hono } from "hono";
 
+import { apiCors } from "./cors";
 import { createApiErrorResponse } from "./rankings/contract";
 import { rankingsRoute } from "./rankings/routes";
+import type { BackendEnv } from "./types";
 
-type AppEnv = {
-  Bindings: {
-    DB: D1Database;
-  };
-};
-
-const app = new Hono<AppEnv>();
+const app = new Hono<BackendEnv>();
 
 const healthResponse = {
   ok: true,
@@ -18,6 +14,7 @@ const healthResponse = {
 
 app.get("/", (c) => c.json(healthResponse));
 app.get("/health", (c) => c.json(healthResponse));
+app.use("/api/*", apiCors);
 app.route("/api/rankings", rankingsRoute);
 
 app.notFound((c) => c.json(createApiErrorResponse("NOT_FOUND", "Not Found"), 404));
