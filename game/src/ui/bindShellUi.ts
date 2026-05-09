@@ -1,4 +1,5 @@
 import type { Engine } from "excalibur";
+import { getRankings, type RankingEntry } from "../api/rankingApi";
 import { GameScene } from "../game/sceneKeys";
 import type { GameplayScene } from "../game/scenes/GameplayScene";
 
@@ -21,9 +22,14 @@ const focusElement = (el: HTMLElement): void => {
   });
 };
 
+const setHidden = (el: HTMLElement, hidden: boolean): void => {
+  el.hidden = hidden;
+};
+
 const GAME_OVER_MODAL_DELAY_MS = 500;
 /** `style.css` のゲームオーバーモーダル transition 時間と揃える */
 const GAME_OVER_FADE_MS = 500;
+const RANKING_LIST_LIMIT = 50;
 
 /**
  * index.html のタイトル／ランキング／ゲームオーバー DOM と Excalibur シーン遷移を結ぶ
@@ -42,12 +48,17 @@ export const bindShellUi = (game: Engine, gameplayScene: GameplayScene): void =>
   }
   const btnGameStart = requireElement<HTMLButtonElement>("btn-game-start");
   const btnRanking = requireElement<HTMLButtonElement>("btn-ranking");
+  const btnRankingReload = requireElement<HTMLButtonElement>("btn-ranking-reload");
   const btnRankingBack = requireElement<HTMLButtonElement>("btn-ranking-back");
   const btnGameOverRetry = requireElement<HTMLButtonElement>("btn-game-over-retry");
   const btnGameOverHome = requireElement<HTMLButtonElement>("btn-game-over-home");
   const appShell = requireElement<HTMLDivElement>("app-shell");
   const hudScore = requireElement<HTMLDivElement>("hud-score");
   const hudScoreValue = requireElement<HTMLSpanElement>("hud-score-value");
+  const rankingStatus = requireElement<HTMLParagraphElement>("ranking-status");
+  const rankingList = requireElement<HTMLOListElement>("ranking-list");
+  const rankingEmpty = requireElement<HTMLParagraphElement>("ranking-empty");
+  const rankingError = requireElement<HTMLParagraphElement>("ranking-error");
 
   const setGameplayHudVisible = (visible: boolean): void => {
     hudScore.classList.toggle("is-hidden", !visible);
@@ -55,6 +66,75 @@ export const bindShellUi = (game: Engine, gameplayScene: GameplayScene): void =>
 
   const syncHudScoreText = (value: number): void => {
     hudScoreValue.textContent = String(value);
+  };
+
+  const createRankingRow = (ranking: RankingEntry): HTMLLIElement => {
+    const row = document.createElement("li");
+    row.className = "ranking-row";
+
+    const rank = document.createElement("span");
+    rank.className = "ranking-rank";
+    rank.textContent = `${ranking.rank}位`;
+
+    const displayName = document.createElement("span");
+    displayName.className = "ranking-name";
+    displayName.textContent = ranking.displayName;
+
+    const score = document.createElement("span");
+    score.className = "ranking-score";
+    score.textContent = `${ranking.score}点`;
+
+    row.append(rank, displayName, score);
+    return row;
+  };
+
+  const renderRankingLoading = (): void => {
+    rankingStatus.textContent = "読み込み中";
+    setHidden(rankingStatus, false);
+    setHidden(rankingEmpty, true);
+    setHidden(rankingError, true);
+    rankingList.replaceChildren();
+  };
+
+  const renderRankingList = (rankings: RankingEntry[]): void => {
+    setHidden(rankingStatus, true);
+    setHidden(rankingError, true);
+    setHidden(rankingEmpty, rankings.length > 0);
+    rankingList.replaceChildren(...rankings.map(createRankingRow));
+  };
+
+  const renderRankingError = (message: string): void => {
+    rankingError.textContent = message;
+    setHidden(rankingStatus, true);
+    setHidden(rankingEmpty, true);
+    setHidden(rankingError, false);
+    rankingList.replaceChildren();
+  };
+
+  let rankingLoadRequestId = 0;
+
+  const loadRankings = async (): Promise<void> => {
+    const requestId = ++rankingLoadRequestId;
+    btnRankingReload.disabled = true;
+    renderRankingLoading();
+
+    try {
+      const rankings = await getRankings({ limit: RANKING_LIST_LIMIT });
+      if (requestId !== rankingLoadRequestId) {
+        return;
+      }
+      renderRankingList(rankings);
+    } catch (error) {
+      if (requestId !== rankingLoadRequestId) {
+        return;
+      }
+      console.error("Failed to load rankings", error);
+      renderRankingError("ランキングを読み込めませんでした。");
+    } finally {
+      if (requestId === rankingLoadRequestId) {
+        btnRankingReload.disabled = false;
+      }
+    }
   };
 
   gameplayScene.session.addScoreChangeListener((score) => {
@@ -81,6 +161,7 @@ export const bindShellUi = (game: Engine, gameplayScene: GameplayScene): void =>
     titleScreen.setAttribute("aria-hidden", open ? "true" : "false");
     if (open) {
       focusElement(rankingDialog);
+      void loadRankings();
     } else if (restoreFocus) {
       focusElement(btnRanking);
     }
@@ -150,6 +231,10 @@ export const bindShellUi = (game: Engine, gameplayScene: GameplayScene): void =>
 
   btnRanking.addEventListener("click", () => {
     setRankingModalOpen(true);
+  });
+
+  btnRankingReload.addEventListener("click", () => {
+    void loadRankings();
   });
 
   btnRankingBack.addEventListener("click", () => {
