@@ -229,7 +229,7 @@ canvas {
 .modal-card.modal-card--game-over {
   display: flex;
   flex-direction: column;
-  gap: 28px;
+  gap: 20px;
   background: rgba(10, 10, 14, 0.72);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
@@ -294,6 +294,62 @@ canvas {
 
 .modal-card .btn {
   width: 100%;
+}
+
+.game-over-score {
+  margin: 0;
+  font-size: 1.35rem;
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.92);
+  font-variant-numeric: tabular-nums;
+}
+
+.ranking-submit-form {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.ranking-submit-label {
+  font-size: 0.85rem;
+  color: rgba(255, 255, 255, 0.66);
+  text-align: left;
+}
+
+.ranking-submit-input {
+  width: 100%;
+  box-sizing: border-box;
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  border-radius: 8px;
+  padding: 12px 14px;
+  font: inherit;
+  color: rgba(255, 255, 255, 0.92);
+  background: rgba(0, 0, 0, 0.45);
+  outline: none;
+}
+
+.ranking-submit-input:focus {
+  border-color: rgba(255, 255, 255, 0.58);
+}
+
+.ranking-submit-input:disabled {
+  color: rgba(255, 255, 255, 0.55);
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.ranking-submit-message {
+  min-height: 1.4em;
+  margin: 0;
+  font-size: 0.9rem;
+  line-height: 1.4;
+}
+
+.ranking-submit-message--success {
+  color: #b8ffc8;
+}
+
+.ranking-submit-message--error {
+  color: #ffb6b6;
 }
 
 .ranking-status,

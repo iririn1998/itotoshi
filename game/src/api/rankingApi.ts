@@ -19,6 +19,8 @@ export type CreateRankingResponse = {
   ranking: RankingEntry;
 };
 
+export const DISPLAY_NAME_MAX_LENGTH = 24;
+
 type ApiErrorResponse = {
   error?: {
     code?: string;
