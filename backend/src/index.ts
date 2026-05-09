@@ -1,19 +1,25 @@
-import * as http from "node:http";
+import { Hono } from "hono";
 
-/** ローカル開発時の既定ポート（`PORT` で上書き可能）。 */
-const DEFAULT_PORT = 8787;
-const PORT = Number(process.env.PORT ?? DEFAULT_PORT);
+import { createApiErrorResponse } from "./rankings/contract";
+import { rankingsRoute } from "./rankings/routes";
 
-const server = http.createServer((req, res) => {
-  if (req.url === "/health" || req.url === "/") {
-    res.writeHead(200, { "Content-Type": "application/json; charset=utf-8" });
-    res.end(JSON.stringify({ ok: true, service: "itotoshi-backend" }));
-    return;
-  }
-  res.writeHead(404);
-  res.end();
-});
+type AppEnv = {
+  Bindings: {
+    DB: D1Database;
+  };
+};
 
-server.listen(PORT, () => {
-  console.log(`backend listening on http://localhost:${PORT}`);
-});
+const app = new Hono<AppEnv>();
+
+const healthResponse = {
+  ok: true,
+  service: "itotoshi-backend",
+} as const;
+
+app.get("/", (c) => c.json(healthResponse));
+app.get("/health", (c) => c.json(healthResponse));
+app.route("/api/rankings", rankingsRoute);
+
+app.notFound((c) => c.json(createApiErrorResponse("NOT_FOUND", "Not Found"), 404));
+
+export default app;
