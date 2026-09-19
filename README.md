@@ -1,8 +1,8 @@
 # itotoshi
 
-## 開発環境と CI
+## 開発環境
 
-Node.js と pnpm は [mise](https://mise.jdx.dev/getting-started) で管理します。バージョンは `mise.toml` に固定しており、GitHub Actions も同じ設定を使用します。pnpm を更新するときは、`package.json` の `packageManager` も同じバージョンに更新してください。
+Node.js と pnpm は [mise](https://mise.jdx.dev/getting-started) で管理します。バージョンは `mise.toml` に固定しています。pnpm を更新するときは、`package.json` の `packageManager` も同じバージョンに更新してください。
 
 mise をインストールし、利用するシェルで有効化した後、リポジトリルートで実行してください。以降は mise が管理する Node.js・pnpm を通常のコマンドで利用します。
 
@@ -11,7 +11,7 @@ mise trust
 mise install
 ```
 
-GitHub Actions は PR の作成・更新と `main` への push 時に、mise による環境構築と依存インストールを行い、`parallel` ステップで lint・フォーマットチェック・ビルドを並列実行します。すべての完了を待ち、いずれかが失敗すると CI も失敗します。ローカルでもリポジトリルートで同じ検証を実行できます。
+依存パッケージのインストールと検証は、リポジトリルートで実行してください。
 
 ```sh
 pnpm install --frozen-lockfile
@@ -20,7 +20,7 @@ pnpm format:check
 pnpm build
 ```
 
-`format:check` はルートの設定ファイルや CI ワークフローを含めて検査します。整形する場合は `pnpm format` を実行してください。生成物や依存パッケージは `.oxfmtrc.json` の設定で対象から除外しています。
+`format:check` はルートの設定ファイルを含めて検査します。整形する場合は `pnpm format` を実行してください。生成物や依存パッケージは `.oxfmtrc.json` の設定で対象から除外しています。
 
 `build` はゲームの型チェックと Vite ビルド、バックエンドの型チェックを実行します。
 
