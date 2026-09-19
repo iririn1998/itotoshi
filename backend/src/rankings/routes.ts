@@ -2,13 +2,14 @@ import { Hono } from "hono";
 
 import {
   createApiErrorResponse,
-  type CreateRankingRequest,
+  parseLimit,
+  validateCreateRankingRequest,
   type CreateRankingResponse,
   type GetRankingsResponse,
-} from "./contract";
+} from "@itotoshi/ranking-contract";
 import { createRanking, listRankings } from "./repository";
 import type { RankingsEnv } from "./types";
-import { isJsonContentType, parseLimit, validateCreateRankingRequest } from "./validation";
+import { isJsonContentType } from "./validation";
 
 /**
  * ランキング API の Hono ルート。
@@ -47,10 +48,10 @@ rankingsRoute.post("/", async (c) => {
     );
   }
 
-  let body: Partial<CreateRankingRequest> | null;
+  let body: unknown;
 
   try {
-    body = await c.req.json<Partial<CreateRankingRequest>>();
+    body = await c.req.json<unknown>();
   } catch {
     return c.json(createApiErrorResponse("INVALID_JSON", "Request body must be valid JSON"), 400);
   }

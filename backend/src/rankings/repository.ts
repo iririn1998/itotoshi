@@ -1,4 +1,4 @@
-import type { RankingEntry } from "./contract";
+import type { RankingEntry } from "@itotoshi/ranking-contract";
 import type { RankingRow, RankRow, ValidRankingInput } from "./types";
 
 /**

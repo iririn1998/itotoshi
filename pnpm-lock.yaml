@@ -23,6 +23,9 @@ importers:
 
   backend:
     dependencies:
+      '@itotoshi/ranking-contract':
+        specifier: workspace:*
+        version: link:../packages/ranking-contract
       hono:
         specifier: ^4.12.18
         version: 4.12.18

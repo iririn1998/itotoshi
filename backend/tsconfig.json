@@ -10,8 +10,7 @@
     "verbatimModuleSyntax": true,
     "noUnusedLocals": true,
     "noUnusedParameters": true,
-    "noFallthroughCasesInSwitch": true,
-    "rootDir": "src"
+    "noFallthroughCasesInSwitch": true
   },
   "include": ["src/**/*.ts"]
 }
