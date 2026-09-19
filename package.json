@@ -13,7 +13,8 @@
     "format": "oxfmt --write .",
     "format:check": "oxfmt --check .",
     "cloudflare:login": "wrangler login",
-    "deploy:game": "pnpm --filter @itotoshi/game run build && wrangler pages deploy game/dist --project-name itotoshi-game"
+    "deploy:game": "pnpm --filter @itotoshi/game run build && wrangler pages deploy game/dist --project-name itotoshi-game",
+    "test": "pnpm -r run test"
   },
   "devDependencies": {
     "lefthook": "^2.1.4",

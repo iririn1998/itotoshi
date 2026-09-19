@@ -15,9 +15,13 @@ concurrency:
 
 jobs:
   check:
-    name: Lint, format, and build
+    name: ${{ matrix.command }}
     runs-on: ubuntu-latest
     timeout-minutes: 10
+    strategy:
+      fail-fast: false
+      matrix:
+        command: [build, lint, "format:check", test]
     steps:
       - name: Checkout
         uses: actions/checkout@v6
@@ -38,12 +42,5 @@ jobs:
       - name: Install dependencies
         run: mise exec -- pnpm install --frozen-lockfile
 
-      - parallel:
-          - name: Lint
-            run: mise exec -- pnpm run lint
-
-          - name: Check formatting
-            run: mise exec -- pnpm run format:check
-
-          - name: Build and typecheck
-            run: mise exec -- pnpm run build
+      - name: Run ${{ matrix.command }}
+        run: mise exec -- pnpm run ${{ matrix.command }}

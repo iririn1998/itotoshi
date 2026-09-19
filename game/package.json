@@ -9,7 +9,8 @@
     "preview": "vite preview",
     "lint": "oxlint -c ../.oxlintrc.json",
     "format": "oxfmt -c ../.oxfmtrc.json --write .",
-    "format:check": "oxfmt -c ../.oxfmtrc.json --check ."
+    "format:check": "oxfmt -c ../.oxfmtrc.json --check .",
+    "test": "vitest run"
   },
   "dependencies": {
     "excalibur": "^0.32.0"
@@ -18,6 +19,7 @@
     "oxfmt": "^0.41.0",
     "oxlint": "^1.56.0",
     "typescript": "~5.9.3",
-    "vite": "^8.0.1"
+    "vite": "^8.0.1",
+    "vitest": "^5.0.1"
   }
 }
