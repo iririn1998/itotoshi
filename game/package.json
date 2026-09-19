@@ -13,6 +13,7 @@
     "test": "vitest run"
   },
   "dependencies": {
+    "@itotoshi/ranking-contract": "workspace:*",
     "excalibur": "^0.32.0"
   },
   "devDependencies": {

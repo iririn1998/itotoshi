@@ -23,9 +23,17 @@ pnpm test
 
 `format:check` はルートの設定ファイルを含めて検査します。整形する場合は `pnpm format` を実行してください。生成物や依存パッケージは `.oxfmtrc.json` の設定で対象から除外しています。
 
-`build` はゲームの型チェックと Vite ビルド、バックエンドの型チェックを実行します。
+`build` はゲームの型チェックと Vite ビルド、バックエンドと共有ランキング契約の型チェックを実行します。
 
-`test` は game/backend の境界値テストを実行します。実行範囲と導入前の検証結果は [テスト基準](docs/testing-baseline.md) を参照してください。
+`test` は game/backend と共有ランキング契約の境界値テストを実行します。実行範囲と導入前の検証結果は [テスト基準](docs/testing-baseline.md) を参照してください。
+
+## ランキング API の共有契約
+
+`packages/ranking-contract` (`@itotoshi/ranking-contract`) が request/response 型、エラーコード、表示名・スコア・取得件数の上限と runtime parser を定義します。backend/game はこの workspace に依存し、API の仕様変更はここから行います。TypeScript ソースを直接公開するため、個別の開発・ビルド前に共有パッケージの生成処理は不要です。
+
+backend は JSON を `unknown` として読み、表示名の trim と入力検証を共有関数で行います。game は成功・エラーレスポンスを検証し、契約違反の成功レスポンスを `RankingApiError` として拒否します。不正なエラー形式や未知のエラーコードの場合は HTTP ステータスによる汎用メッセージを使います。追加フィールドは許可します。
+
+表示名の契約上の長さは Unicode コードポイント単位です。HTML input の `maxLength` も共有定数から設定しますが、ブラウザの仕様では UTF-16 コード単位で数えるため、絵文字などの入力可能数は API の上限より少なくなる場合があります（従来の挙動を維持）。
 
 ## Cloudflare Pages デプロイ
 

@@ -1,7 +1,7 @@
 import { Hono } from "hono";
 
 import { apiCors } from "./cors";
-import { createApiErrorResponse } from "./rankings/contract";
+import { createApiErrorResponse } from "@itotoshi/ranking-contract";
 import { rankingsRoute } from "./rankings/routes";
 import type { BackendEnv } from "./types";
 

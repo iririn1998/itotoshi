@@ -66,13 +66,19 @@ export type CreateRankingResponse = {
 /**
  * バックエンド API が返す安定したエラーコード。
  */
-export type ApiErrorCode =
-  | "BAD_REQUEST"
-  | "INVALID_JSON"
-  | "METHOD_NOT_ALLOWED"
-  | "NOT_FOUND"
-  | "UNSUPPORTED_MEDIA_TYPE"
-  | "INTERNAL_ERROR";
+export const API_ERROR_CODES = [
+  "BAD_REQUEST",
+  "INVALID_JSON",
+  "METHOD_NOT_ALLOWED",
+  "NOT_FOUND",
+  "UNSUPPORTED_MEDIA_TYPE",
+  "INTERNAL_ERROR",
+] as const;
+
+export type ApiErrorCode = (typeof API_ERROR_CODES)[number];
+
+export const isApiErrorCode = (value: unknown): value is ApiErrorCode =>
+  API_ERROR_CODES.some((code) => code === value);
 
 /**
  * バックエンド API の全エラーで使うレスポンス形式。

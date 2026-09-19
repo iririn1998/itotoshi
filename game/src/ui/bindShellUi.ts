@@ -1,10 +1,10 @@
 import type { Engine } from "excalibur";
 import {
-  createRanking,
   DISPLAY_NAME_MAX_LENGTH,
-  getRankings,
+  DEFAULT_RANKING_LIMIT,
   type RankingEntry,
-} from "../api/rankingApi";
+} from "@itotoshi/ranking-contract";
+import { createRanking, getRankings } from "../api/rankingApi";
 import { GameScene } from "../game/sceneKeys";
 import type { GameplayScene } from "../game/scenes/GameplayScene";
 
@@ -34,7 +34,6 @@ const setHidden = (el: HTMLElement, hidden: boolean): void => {
 const GAME_OVER_MODAL_DELAY_MS = 500;
 /** `style.css` のゲームオーバーモーダル transition 時間と揃える */
 const GAME_OVER_FADE_MS = 500;
-const RANKING_LIST_LIMIT = 50;
 
 type GameOverSubmissionState = {
   readonly score: number;
@@ -73,6 +72,7 @@ export const bindShellUi = (game: Engine, gameplayScene: GameplayScene): void =>
   const gameOverScoreValue = requireElement<HTMLSpanElement>("game-over-score-value");
   const rankingSubmitForm = requireElement<HTMLFormElement>("ranking-submit-form");
   const rankingDisplayNameInput = requireElement<HTMLInputElement>("ranking-display-name");
+  rankingDisplayNameInput.maxLength = DISPLAY_NAME_MAX_LENGTH;
   const btnRankingSubmit = requireElement<HTMLButtonElement>("btn-ranking-submit");
   const rankingSubmitMessage = requireElement<HTMLParagraphElement>("ranking-submit-message");
 
@@ -140,7 +140,7 @@ export const bindShellUi = (game: Engine, gameplayScene: GameplayScene): void =>
     renderRankingLoading();
 
     try {
-      const rankings = await getRankings({ limit: RANKING_LIST_LIMIT });
+      const rankings = await getRankings({ limit: DEFAULT_RANKING_LIMIT });
       if (requestId !== rankingLoadRequestId) {
         return;
       }

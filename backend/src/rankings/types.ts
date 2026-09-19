@@ -1,3 +1,4 @@
+import type { CreateRankingRequest } from "@itotoshi/ranking-contract";
 import type { BackendEnv } from "../types";
 
 /**
@@ -20,10 +21,7 @@ export type RankRow = {
 /**
  * ランキング作成前に検証と正規化を終えた入力値。
  */
-export type ValidRankingInput = {
-  displayName: string;
-  score: number;
-};
+export type ValidRankingInput = CreateRankingRequest;
 
 /**
  * ランキング API が利用する Workers Binding。
