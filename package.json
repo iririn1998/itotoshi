@@ -10,8 +10,8 @@
     "build": "pnpm -r run build",
     "preview": "pnpm --filter @itotoshi/game preview",
     "lint": "pnpm -r run lint",
-    "format": "pnpm -r run format",
-    "format:check": "pnpm -r run format:check",
+    "format": "oxfmt --write .",
+    "format:check": "oxfmt --check .",
     "cloudflare:login": "wrangler login",
     "deploy:game": "pnpm --filter @itotoshi/game run build && wrangler pages deploy game/dist --project-name itotoshi-game"
   },
