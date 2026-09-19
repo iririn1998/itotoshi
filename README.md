@@ -18,11 +18,14 @@ pnpm install --frozen-lockfile
 pnpm lint
 pnpm format:check
 pnpm build
+pnpm test
 ```
 
 `format:check` はルートの設定ファイルを含めて検査します。整形する場合は `pnpm format` を実行してください。生成物や依存パッケージは `.oxfmtrc.json` の設定で対象から除外しています。
 
 `build` はゲームの型チェックと Vite ビルド、バックエンドの型チェックを実行します。
+
+`test` は game/backend の境界値テストを実行します。実行範囲と導入前の検証結果は [テスト基準](docs/testing-baseline.md) を参照してください。
 
 ## Cloudflare Pages デプロイ
 
