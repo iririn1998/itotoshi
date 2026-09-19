@@ -1,38 +1,18 @@
-export type RankingEntry = {
-  id: number;
-  rank: number;
-  displayName: string;
-  score: number;
-  createdAt: number;
-};
-
-export type GetRankingsResponse = {
-  rankings: RankingEntry[];
-};
-
-export type CreateRankingRequest = {
-  displayName: string;
-  score: number;
-};
-
-export type CreateRankingResponse = {
-  ranking: RankingEntry;
-};
-
-export const DISPLAY_NAME_MAX_LENGTH = 24;
-
-type ApiErrorResponse = {
-  error?: {
-    code?: string;
-    message?: string;
-  };
-};
+import {
+  parseApiErrorResponse,
+  parseCreateRankingResponse,
+  parseGetRankingsResponse,
+  type ApiErrorCode,
+  type CreateRankingRequest,
+  type CreateRankingResponse,
+  type RankingEntry,
+} from "@itotoshi/ranking-contract";
 
 export class RankingApiError extends Error {
   readonly status: number;
-  readonly code: string | null;
+  readonly code: ApiErrorCode | null;
 
-  constructor(message: string, options: { status: number; code?: string | null }) {
+  constructor(message: string, options: { status: number; code?: ApiErrorCode | null }) {
     super(message);
     this.name = "RankingApiError";
     this.status = options.status;
@@ -51,9 +31,9 @@ const rankingApiUrl = (path: string, searchParams?: URLSearchParams): string => 
   return query ? `${url}?${query}` : url;
 };
 
-const parseJson = async <T>(response: Response): Promise<T> => {
+const parseJson = async (response: Response): Promise<unknown> => {
   try {
-    return (await response.json()) as T;
+    return await response.json();
   } catch {
     throw new RankingApiError("API response was not valid JSON", {
       status: response.status,
@@ -66,23 +46,24 @@ const throwIfApiError = async (response: Response): Promise<void> => {
     return;
   }
 
-  let body: ApiErrorResponse | null = null;
-
+  let json: unknown;
   try {
-    body = (await response.json()) as ApiErrorResponse;
+    json = await response.json();
   } catch {
-    throw new RankingApiError(`Ranking API request failed with status ${response.status}`, {
-      status: response.status,
-    });
+    // Non-JSON proxy/server errors use the same safe HTTP-status fallback.
   }
 
+  const body = parseApiErrorResponse(json);
   throw new RankingApiError(
-    body?.error?.message ?? `Ranking API request failed with status ${response.status}`,
-    {
-      status: response.status,
-      code: body?.error?.code,
-    },
+    body?.error.message ?? `Ranking API request failed with status ${response.status}`,
+    { status: response.status, code: body?.error.code },
   );
+};
+
+const throwInvalidResponse = (response: Response): never => {
+  throw new RankingApiError("API response did not match the ranking contract", {
+    status: response.status,
+  });
 };
 
 export const getRankings = async (options: { limit?: number } = {}): Promise<RankingEntry[]> => {
@@ -94,7 +75,8 @@ export const getRankings = async (options: { limit?: number } = {}): Promise<Ran
   const response = await fetch(rankingApiUrl("/api/rankings", searchParams));
   await throwIfApiError(response);
 
-  const body = await parseJson<GetRankingsResponse>(response);
+  const body = parseGetRankingsResponse(await parseJson(response));
+  if (body === null) return throwInvalidResponse(response);
   return body.rankings;
 };
 
@@ -110,6 +92,7 @@ export const createRanking = async (
   });
   await throwIfApiError(response);
 
-  const body = await parseJson<CreateRankingResponse>(response);
+  const body = parseCreateRankingResponse(await parseJson(response));
+  if (body === null) return throwInvalidResponse(response);
   return body.ranking;
 };

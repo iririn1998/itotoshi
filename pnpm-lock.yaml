@@ -54,6 +54,9 @@ importers:
 
   game:
     dependencies:
+      '@itotoshi/ranking-contract':
+        specifier: workspace:*
+        version: link:../packages/ranking-contract
       excalibur:
         specifier: ^0.32.0
         version: 0.32.0
