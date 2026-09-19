@@ -1,0 +1,19 @@
+{
+  "name": "@itotoshi/ranking-contract",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "build": "tsc --noEmit",
+    "lint": "oxlint",
+    "test": "vitest run"
+  },
+  "devDependencies": {
+    "oxlint": "^1.56.0",
+    "typescript": "~5.9.3",
+    "vitest": "^5.0.1"
+  }
+}
