@@ -24,9 +24,11 @@ describe("segment vs closed AABB [0, 10] × [0, 10]", () => {
     { name: "parallel outside vertical", line: [11, -5, 11, 15], interval: null },
   ])("$name", ({ line, interval }) => {
     const [ax, ay, bx, by] = line;
-    const clip = segmentAabbClip(ax!, ay!, bx!, by!, 0, 0, 10, 10);
+    const segment = { start: { x: ax!, y: ay! }, end: { x: bx!, y: by! } };
+    const box = { left: 0, top: 0, right: 10, bottom: 10 };
+    const clip = segmentAabbClip(segment, box);
     expect(clip.intersects).toBe(interval !== null);
-    expect(segmentIntersectsAabb(ax!, ay!, bx!, by!, 0, 0, 10, 10)).toBe(interval !== null);
+    expect(segmentIntersectsAabb(segment, box)).toBe(interval !== null);
     if (interval === null) {
       expect(segmentAabbEntryT(clip)).toBeNull();
     } else {

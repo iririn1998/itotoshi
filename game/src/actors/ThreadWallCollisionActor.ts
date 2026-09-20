@@ -1,13 +1,13 @@
 import { Actor, vec, type Engine, type Vector } from "excalibur";
 import { GameplaySession } from "../game/GameplaySession";
-import { segmentAabbClip, segmentAabbEntryT } from "../game/geometry/segmentAabb";
+import { findFirstHit, findPassedGates } from "../game/collision/collision";
+import type { CollisionGate } from "../game/collision/types";
+import type { Segment } from "../game/geometry/types";
 import { tuning } from "../game/tuning";
 import { LineActor } from "./LineActor";
 import { ThreadHoleSpawnerActor } from "./ThreadHoleSpawnerActor";
 
 const th = tuning.threadHoles;
-/** 画面上下端の帯状 AABB を Liang–Barsky で切るときの十分大きな座標幅 */
-const VIEWPORT_BORDER_EXTENT = 1e7;
 
 /**
  * 軌跡セグメントと壁当たりを検査し、接触時にセッションをゲームオーバーにする。
@@ -37,102 +37,36 @@ export class ThreadWallCollisionActor extends Actor {
       return;
     }
 
-    const v = engine.currentScene.camera.viewport;
-    const vTop = v.top;
-    const vBottom = v.bottom;
-
-    const pad = this.line.lineWidth / 2 + th.hitInflationPx;
     const pts = this.line.points;
     if (pts.length < 2) {
       return;
     }
 
-    const p1 = pts[pts.length - 2]!;
-    const p2 = pts[pts.length - 1]!;
-    const dxSeg = p2.x - p1.x;
-    const dySeg = p2.y - p1.y;
-
-    const hitAtT = (t: number): void => {
-      this.session.isGameOver = true;
-      this.onHit(vec(p1.x + t * dxSeg, p1.y + t * dySeg));
-    };
-
-    const xMin = -VIEWPORT_BORDER_EXTENT;
-    const xMax = VIEWPORT_BORDER_EXTENT;
-
-    const topBorderClip = segmentAabbClip(
-      p1.x,
-      p1.y,
-      p2.x,
-      p2.y,
-      xMin,
-      vTop - VIEWPORT_BORDER_EXTENT,
-      xMax,
-      vTop + pad,
-    );
-    const tTop = segmentAabbEntryT(topBorderClip);
-    if (tTop !== null) {
-      hitAtT(tTop);
-      return;
-    }
-
-    const bottomBorderClip = segmentAabbClip(
-      p1.x,
-      p1.y,
-      p2.x,
-      p2.y,
-      xMin,
-      vBottom - pad,
-      xMax,
-      vBottom + VIEWPORT_BORDER_EXTENT,
-    );
-    const tBottom = segmentAabbEntryT(bottomBorderClip);
-    if (tBottom !== null) {
-      hitAtT(tBottom);
-      return;
-    }
-
+    const segment: Segment = { start: pts[pts.length - 2]!, end: pts[pts.length - 1]! };
+    const pad = this.line.lineWidth / 2 + th.hitInflationPx;
+    const viewport = engine.currentScene.camera.viewport;
     const gates = this.spawner.getGates();
+    const inputs: CollisionGate[] = gates.map((gate) => ({
+      walls: gate.getWallHitBoxes(pad),
+      exitX: gate.pos.x + th.wallThicknessX,
+      gap: gate.getGapYRange(),
+      passScored: gate.passScored,
+    }));
+    const hit = findFirstHit(
+      segment,
+      { top: viewport.top + pad, bottom: viewport.bottom - pad },
+      inputs,
+    );
+    const passed = findPassedGates(segment, inputs, hit);
 
-    for (const gate of gates) {
-      for (const box of gate.getWallHitBoxes(pad)) {
-        const clip = segmentAabbClip(
-          p1.x,
-          p1.y,
-          p2.x,
-          p2.y,
-          box.left,
-          box.top,
-          box.right,
-          box.bottom,
-        );
-        const tHit = segmentAabbEntryT(clip);
-        if (tHit !== null) {
-          hitAtT(tHit);
-          return;
-        }
-      }
+    if (hit !== null) {
+      this.session.isGameOver = true;
+      this.onHit(vec(hit.point.x, hit.point.y));
+      return;
     }
-
-    const x0 = p1.x;
-    const x1 = p2.x;
-    const dx = x1 - x0;
-    if (dx > 0) {
-      for (const gate of gates) {
-        if (gate.passScored) {
-          continue;
-        }
-        const exitX = gate.pos.x + th.wallThicknessX;
-        if (x0 < exitX && x1 >= exitX) {
-          const t = (exitX - x0) / dx;
-          const yAt = p1.y + t * (p2.y - p1.y);
-          const { minY, maxY } = gate.getGapYRange();
-          if (yAt >= minY && yAt <= maxY) {
-            gate.passScored = true;
-            this.session.addScore(th.scorePerGapPass);
-          }
-        }
-      }
+    for (const index of passed) {
+      gates[index]!.passScored = true;
+      this.session.addScore(th.scorePerGapPass);
     }
   };
 }
