@@ -1,8 +1,9 @@
 import { Actor, Canvas, CollisionType, GraphicsGroup, vec, type Vector } from "excalibur";
+import type { Aabb } from "../game/geometry/types";
 import { tuning } from "../game/tuning";
 
 /** ワールド座標の軸平行矩形当たり */
-export type WallHitBox = { left: number; top: number; right: number; bottom: number };
+export type WallHitBox = Aabb;
 
 /** カメラ viewport の上下端（ワールド Y）。{@link ThreadHoleGateActor} の柱・当たりはこの範囲に合わせる */
 export type GateViewportWorldY = { top: number; bottom: number };
