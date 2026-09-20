@@ -14,13 +14,13 @@
   },
   "dependencies": {
     "@itotoshi/ranking-contract": "workspace:*",
-    "excalibur": "^0.32.0"
+    "excalibur": "catalog:"
   },
   "devDependencies": {
-    "oxfmt": "^0.41.0",
-    "oxlint": "^1.56.0",
-    "typescript": "~5.9.3",
-    "vite": "^8.0.1",
-    "vitest": "^5.0.1"
+    "oxfmt": "catalog:",
+    "oxlint": "catalog:",
+    "typescript": "catalog:",
+    "vite": "catalog:",
+    "vitest": "catalog:"
   }
 }
